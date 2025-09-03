@@ -1,0 +1,82 @@
+{
+  "info": {
+    "name": "SkillX API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "a7c0f8f4-7c8f-4f4a-9d8a-83b9b0c1c7a9"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "accessToken", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/health" }
+    },
+    {
+      "name": "Auth - Register Admin",
+      "request": {
+        "method": "POST",
+        "header": [ {"key":"Content-Type","value":"application/json"} ],
+        "url": "{{baseUrl}}/api/auth/register-admin",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"firstName\": \"Admin\",\n  \"lastName\": \"User\",\n  \"phone\": \"+10000000000\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Auth - Login",
+      "request": {
+        "method": "POST",
+        "header": [ {"key":"Content-Type","value":"application/json"} ],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Orders - List",
+      "request": {
+        "method": "GET",
+        "header": [ {"key":"Authorization","value":"Bearer {{accessToken}}"} ],
+        "url": {
+          "raw": "{{baseUrl}}/api/orders?page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["api","orders"],
+          "query": [ {"key":"page","value":"1"}, {"key":"limit","value":"10"} ]
+        }
+      }
+    },
+    {
+      "name": "Orders - Detail",
+      "request": {
+        "method": "GET",
+        "header": [ {"key":"Authorization","value":"Bearer {{accessToken}}"} ],
+        "url": "{{baseUrl}}/api/orders/:orderId"
+      }
+    },
+    {
+      "name": "Payments (501 stub)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/payments" }
+    },
+    {
+      "name": "Revisions (501 stub)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/revisions" }
+    },
+    {
+      "name": "Files (501 stub)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/files" }
+    },
+    {
+      "name": "Chat (501 stub)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/chat" }
+    },
+    {
+      "name": "Analytics (501 stub)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/analytics" }
+    }
+  ]
+}
