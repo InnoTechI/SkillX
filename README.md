@@ -1,4 +1,18 @@
-# SkillX Admin Backend
+# SkillX
+
+Next.js app with integrated API routes (TypeScript). The legacy Express backend has been migrated into Next.js API handlers under `src/app/api/*` and the `backend/` folder removed.
+
+- Database: MongoDB via Mongoose (`src/lib/db.ts`)
+- Auth: JWT helpers (`src/lib/auth.ts`)
+- Models: `src/models/User.ts`, `src/models/Order.ts`
+- Routes: `src/app/api/*`
+
+Run:
+- dev: next dev
+- build: next build
+- start: next start
+
+Env vars needed: MONGODB_URI, JWT_SECRET (and optional refresh/others).# SkillX Admin Backend
 
 A comprehensive, enterprise-grade backend API system for managing a resume-writing service business. This system provides complete order management, client communication, payment processing, file handling, revision tracking, and analytics capabilities.
 
