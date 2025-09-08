@@ -20,6 +20,17 @@ export function verifyAccessToken(token: string) {
   return jwt.verify(token, secret as jwtTypes.Secret) as any;
 }
 
+export function verifyRefreshToken(token: string) {
+  const secret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_REFRESH_SECRET not set');
+  try {
+    const decoded = jwt.verify(token, secret as jwtTypes.Secret) as any;
+    return decoded.type === 'refresh' ? { userId: decoded.id } : null;
+  } catch (error) {
+    return null;
+  }
+}
+
 export async function getAuthUser(req: Request) {
   const auth = req.headers.get('authorization');
   if (!auth?.startsWith('Bearer ')) return null;
