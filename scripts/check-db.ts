@@ -10,6 +10,12 @@ if (!uri) {
 
 (async () => {
   await mongoose.connect(uri);
+  
+  if (!mongoose.connection.db) {
+    console.error('Database connection failed');
+    process.exit(1);
+  }
+  
   const collections = await mongoose.connection.db.listCollections().toArray();
   const colNames = collections.map(c => c.name);
   console.log('Collections:', colNames);

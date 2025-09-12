@@ -9,27 +9,28 @@
     "lint": "eslint"
   },
   "dependencies": {
-  "react": "19.1.0",
-  "react-dom": "19.1.0",
-  "next": "15.5.2",
-  "mongoose": "^8.6.2",
-  "bcryptjs": "^2.4.3",
-  "jsonwebtoken": "^9.0.2",
-  "cloudinary": "^2.5.1",
-  "winston": "^3.13.0"
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.5.1",
+    "dotenv": "^17.2.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.6.2",
+    "next": "15.5.2",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "winston": "^3.13.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
+    "@types/winston": "^2.4.4",
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
-  "@eslint/eslintrc": "^3",
-  "@types/bcryptjs": "^2.4.6",
-  "@types/jsonwebtoken": "^9.0.7",
-  "@types/winston": "^2.4.4"
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
