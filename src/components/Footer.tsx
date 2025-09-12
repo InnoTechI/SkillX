@@ -1,15 +1,13 @@
 export default function Footer() {
   return (
-    <footer className="bg-gradient-to-r from-blue-900 via-blue-800 to-purple-700 text-white py-16">
+    <footer className="text-white py-16" style={{ background: 'radial-gradient(69.05% 165.98% at 15.4% 72.36%, rgba(0, 0, 0, 0.92) 15.02%, #202FE9 62.5%, #666666 140%)' }}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Left Side - Company Info */}
           <div className="space-y-6">
             {/* Logo */}
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">★</span>
-              </div>
+              <img src="/footer-logo.png" alt="SkillX" className="w-15 h-15 rounded" />
               <span className="text-white text-4xl font-bold">SkillX</span>
             </div>
             

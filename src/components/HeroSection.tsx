@@ -18,7 +18,7 @@ export default function HeroSection() {
       className="relative min-h-screen flex items-center"
       style={{
         background:
-          'radial-gradient(69.05% 70.98% at 15.4% 72.36%, rgba(0, 0, 0, 0.92) 37.02%, #202FE9 62.5%, #666666 100%)',
+          'radial-gradient(69.05% 165.98% at 15.4% 72.36%, rgba(0, 0, 0, 0.92) 15.02%, #202FE9 62.5%,rgb(85, 81, 81) 140%)',
       }}
     >
       {/* Header */}

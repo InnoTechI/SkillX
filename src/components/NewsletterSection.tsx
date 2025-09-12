@@ -19,7 +19,7 @@ export default function NewsletterSection() {
           {/* Left Content */}
           <div className="space-y-8">
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900">
-              Never Miss an Opportunity 🤝
+              Never Miss an Opportunity <img src="/newsletter-logo.png" alt="emoji" className="inline-block align-middle" style={{ width: '1.25em', height: '1em' }} />
             </h2>
             <p className="text-gray-600 text-lg leading-relaxed">
               Join thousands of students who get exclusive access to internships, hackathons, and career opportunities delivered to their inbox.
@@ -31,7 +31,7 @@ export default function NewsletterSection() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@domain.com"
-                className="flex-1 px-6 py-4 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-6 py-4 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-100 text-gray-700 placeholder-gray-500"
                 required
               />
               <button

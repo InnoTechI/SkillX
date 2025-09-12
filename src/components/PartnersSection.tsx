@@ -8,6 +8,7 @@ export default function PartnersSection() {
     { name: "Slack", logos: ["https://logo.clearbit.com/slack.com"] },
     { name: "Dribbble", logos: ["https://logo.clearbit.com/dribbble.com"] },
     { name: "Adobe", logos: [
+      "/adobe.png",
       "https://logo.clearbit.com/adobe.com",
       "https://cdn.simpleicons.org/adobe/ff0000",
       "https://upload.wikimedia.org/wikipedia/commons/4/4f/Adobe_Systems_logo_and_wordmark.svg"
@@ -15,6 +16,7 @@ export default function PartnersSection() {
     { name: "Flipkart", logos: ["https://logo.clearbit.com/flipkart.com"] },
     { name: "Tata", logos: ["https://logo.clearbit.com/tata.com"] },
     { name: "Google", logos: [
+      "/google.jpeg",
       "https://logo.clearbit.com/google.com",
       "https://cdn.simpleicons.org/google/4285F4",
       "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg"
@@ -54,14 +56,14 @@ export default function PartnersSection() {
         {/* Partners Grid */}
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {partners.map((partner, index) => (
-            <div key={index} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex items-center justify-center">
+            <div key={index} className="bg-[#FFF6F6] border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex items-center justify-center">
               <img
                 src={partner.logos[0]}
                 data-fallbacks={partner.logos.slice(1).join("|")}
                 data-fallback-index="0"
                 onError={handleImgError}
                 alt={`${partner.name} logo`}
-                className="max-h-10 object-contain"
+                className="max-h-10 object-contain mix-blend-multiply"
               />
             </div>
           ))}
