@@ -29,8 +29,8 @@ export default function HeroSection() {
             <Image
               src="/logo.png"
               alt="SkillX Logo"
-              width={36}
-              height={36}
+              width={38}
+              height={38}
               className="rounded"
             />
             <span className="text-white text-2xl font-bold">SkillX</span>
@@ -66,7 +66,7 @@ export default function HeroSection() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <button className="bg-lime-400 text-black px-8 py-4 rounded-lg font-semibold hover:bg-lime-300 transition-colors flex items-center justify-center space-x-2">
+            <button className="bg-lime-300 text-black px-8 py-4 rounded-full font-semibold hover:bg-lime-400 transition-colors flex items-center justify-center space-x-2">
               <span>Start Exploring</span>
               <span>→</span>
             </button>
