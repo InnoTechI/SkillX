@@ -41,7 +41,7 @@ export default function FeaturesSection() {
         {/* Features Grid */}
         <div className="grid md:grid-cols-3 gap-8 mb-20">
           {features.map((feature, index) => (
-            <div key={index} className="bg-white rounded-2xl p-6 hover:shadow-lg transition-shadow">
+            <div key={index} className="bg-white rounded-3xl p-6 hover:shadow-lg transition-shadow">
               <div className="relative w-full h-78 rounded-lg overflow-hidden">
                 <Image src={feature.image} alt={feature.title} fill className="object-cover" />
                 <button className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors shadow-lg">

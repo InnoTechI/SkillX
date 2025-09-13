@@ -24,7 +24,7 @@ export default function AboutSection() {
         {/* Three Cards */}
         <div className="grid md:grid-cols-3 gap-8">
           {/* Card 1: Platform Development */}
-          <div className="bg-white rounded-2xl p-6 hover:shadow-lg transition-shadow">
+          <div className="bg-white rounded-3xl p-6 hover:shadow-lg transition-shadow">
             <div className="relative mb-6">
               <div className="w-full h-78 rounded-lg overflow-hidden relative">
                 <Image
@@ -46,7 +46,7 @@ export default function AboutSection() {
           </div>
 
           {/* Card 2: Digital Transformation */}
-          <div className="bg-white rounded-2xl p-6 hover:shadow-lg transition-shadow">
+          <div className="bg-white rounded-3xl p-6 hover:shadow-lg transition-shadow">
             <div className="relative mb-6">
               <div className="w-full h-78 rounded-lg overflow-hidden relative">
                 <Image
@@ -68,7 +68,7 @@ export default function AboutSection() {
           </div>
 
           {/* Card 3: Intelligent System */}
-          <div className="bg-white rounded-2xl p-6 hover:shadow-lg transition-shadow">
+          <div className="bg-white rounded-3xl p-6 hover:shadow-lg transition-shadow">
             <div className="relative mb-6">
               <div className="w-full h-78 rounded-lg overflow-hidden relative">
                 <Image
