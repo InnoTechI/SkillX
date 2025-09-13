@@ -7,7 +7,7 @@ export default function Footer() {
           <div className="space-y-6">
             {/* Logo */}
             <div className="flex items-center space-x-2">
-              <img src="/footer-logo.png" alt="SkillX" className="w-15 h-15 rounded" />
+              <img src="/footer-logo.png" alt="SkillX" className="w-15 h-15 rounded-lg" />
               <span className="text-white text-4xl font-bold">SkillX</span>
             </div>
             
@@ -40,7 +40,7 @@ export default function Footer() {
             {/* For Students */}
             <div>
               <h3 className="font-semibold mb-4">For Students</h3>
-              <ul className="space-y-2 text-gray-300">
+              <ul className ="space-y-2 text-gray-300">
                 <li><a href="#internships" className="hover:text-white transition-colors">Find Internships</a></li>
                 <li><a href="#skill-development" className="hover:text-white transition-colors">Skill Development</a></li>
                 <li><a href="#mock-interviews" className="hover:text-white transition-colors">Mock Interviews</a></li>
