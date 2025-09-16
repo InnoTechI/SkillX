@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { AuthAPI, TokenManager } from '@/lib/http';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function RegisterPage() {
   const [role, setRole] = useState<'admin' | 'user'>('admin');
@@ -9,10 +12,51 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const router = useRouter();
+  const { login } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // UI-only for now
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = role === 'admin' 
+        ? await AuthAPI.registerAdmin({
+            email,
+            password,
+            firstName,
+            lastName,
+            phone,
+          })
+        : await AuthAPI.registerUser({
+            email,
+            password,
+            firstName,
+            lastName,
+            phone,
+          });
+      
+      if (response.success && response.data) {
+        // Store tokens and user data
+        TokenManager.setTokens(response.data.tokens);
+        TokenManager.setUser(response.data.user);
+        
+        // Update auth context
+        login(response.data.user);
+        
+        // Redirect to dashboard or home page
+        router.push('/');
+      } else {
+        setError(response.message || 'Registration failed');
+      }
+    } catch (error) {
+      setError('An unexpected error occurred');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -53,6 +97,12 @@ export default function RegisterPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+              {error}
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">First name</label>
@@ -63,6 +113,7 @@ export default function RegisterPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-100 text-gray-700 placeholder-gray-500"
                 placeholder="John"
                 required
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -74,6 +125,7 @@ export default function RegisterPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-100 text-gray-700 placeholder-gray-500"
                 placeholder="Doe"
                 required
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -87,6 +139,7 @@ export default function RegisterPage() {
               placeholder="name@domain.com"
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-100 text-gray-700 placeholder-gray-500"
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -98,6 +151,7 @@ export default function RegisterPage() {
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+91 98765 43210"
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-100 text-gray-700 placeholder-gray-500"
+              disabled={isLoading}
             />
           </div>
 
@@ -111,14 +165,16 @@ export default function RegisterPage() {
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-100 text-gray-700 placeholder-gray-500"
               required
               minLength={8}
+              disabled={isLoading}
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-gray-900 text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-700 transition-colors"
+            disabled={isLoading}
+            className="w-full bg-gray-900 text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Create {role === 'admin' ? 'Admin' : 'User'} account
+            {isLoading ? 'Creating account...' : `Create ${role === 'admin' ? 'Admin' : 'User'} account`}
           </button>
 
           <p className="text-sm text-gray-600 text-center">
