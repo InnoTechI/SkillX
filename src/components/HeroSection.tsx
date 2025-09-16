@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import AuthStatus from './AuthStatus';
 
 export default function HeroSection() {
   const [email, setEmail] = useState('');
@@ -47,10 +48,7 @@ export default function HeroSection() {
 
           {/* Action Buttons */}
           <div className="flex items-center space-x-4">
-            <a href="/login" className="text-white hover:text-gray-300 transition-colors">Login</a>
-            <a href="/register" className="text-white underline hover:text-gray-300 transition-colors">
-              Get Started →
-            </a>
+            <AuthStatus />
           </div>
         </div>
       </header>
