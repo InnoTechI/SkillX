@@ -7,9 +7,39 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // UI-only for now
+    setError(null);
+    if (role === 'user') {
+      setError('User login is not enabled yet. Please use Admin.');
+      return;
+    }
+    try {
+      setSubmitting(true);
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.message || 'Login failed');
+      }
+      try {
+        localStorage.setItem('accessToken', data.data.tokens.accessToken);
+        localStorage.setItem('refreshToken', data.data.tokens.refreshToken);
+        localStorage.setItem('authUser', JSON.stringify(data.data.user));
+      } catch {}
+      const r = String(data?.data?.user?.role || '').toLowerCase();
+      window.location.href = r === 'admin' || r === 'super_admin' ? '/admin' : '/';
+    } catch (err: any) {
+      setError(err?.message || 'Login failed');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -50,6 +80,9 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="rounded-lg bg-red-50 text-red-700 px-4 py-2 text-sm">{error}</div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
@@ -77,9 +110,10 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full bg-gray-900 text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-700 transition-colors"
+            disabled={submitting}
+            className="w-full bg-gray-900 text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-700 transition-colors disabled:opacity-60"
           >
-            Continue as {role === 'admin' ? 'Admin' : 'User'}
+            {submitting ? 'Signing in…' : `Continue as ${role === 'admin' ? 'Admin' : 'User'}`}
           </button>
 
           <p className="text-sm text-gray-600 text-center">
