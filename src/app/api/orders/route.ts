@@ -27,3 +27,95 @@ export async function GET(req: Request) {
 
   return NextResponse.json({ success: true, message: 'Orders retrieved successfully', data: { orders, pagination: { currentPage: page, totalPages, totalItems: totalOrders, itemsPerPage: limit, hasNextPage: page < totalPages, hasPrevPage: page > 1 } } });
 }
+
+export async function POST(req: Request) {
+  try {
+    await connectDB();
+    const user = await getAuthUser(req as any);
+    
+    if (!user) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Authentication required', 
+        error: 'NOT_AUTHENTICATED' 
+      }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const {
+      serviceType,
+      urgencyLevel = 'standard',
+      requirements,
+      pricing
+    } = body;
+
+    // Validate required fields
+    if (!serviceType || !requirements || !pricing) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Missing required order information', 
+        error: 'MISSING_ORDER_INFO' 
+      }, { status: 400 });
+    }
+
+    // Calculate estimated completion date based on urgency
+    const estimatedCompletion = new Date();
+    switch (urgencyLevel) {
+      case 'express':
+        estimatedCompletion.setDate(estimatedCompletion.getDate() + 1);
+        break;
+      case 'urgent':
+        estimatedCompletion.setDate(estimatedCompletion.getDate() + 3);
+        break;
+      default:
+        estimatedCompletion.setDate(estimatedCompletion.getDate() + 7);
+    }
+
+    // Create the order
+    const orderData = {
+      client: user._id,
+      serviceType,
+      urgencyLevel,
+      requirements: {
+        industryType: requirements.industryType || 'General',
+        experienceLevel: requirements.experienceLevel || 'mid_level',
+        targetRole: requirements.targetRole || 'Professional',
+        specialRequests: requirements.specialRequests,
+        atsOptimization: requirements.atsOptimization !== false,
+        keywords: requirements.keywords || []
+      },
+      pricing: {
+        basePrice: pricing.basePrice || 0,
+        urgencyFee: pricing.urgencyFee || 0,
+        additionalServices: pricing.additionalServices || [],
+        discount: pricing.discount || 0,
+        totalAmount: pricing.totalAmount || pricing.basePrice || 0,
+        currency: pricing.currency || 'USD'
+      },
+      timeline: {
+        estimatedCompletion,
+        lastActivity: new Date()
+      },
+      status: 'pending',
+      priority: urgencyLevel === 'express' ? 5 : urgencyLevel === 'urgent' ? 4 : 3
+    };
+
+    const order = new Order(orderData);
+    await order.save();
+
+    // Populate the client information for response
+    await order.populate('client', 'firstName lastName email');
+
+    return NextResponse.json({
+      success: true,
+      message: 'Order created successfully',
+      data: { order }
+    }, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ 
+      success: false, 
+      message: error.message || 'Failed to create order', 
+      error: 'INTERNAL_ERROR' 
+    }, { status: 500 });
+  }
+}
