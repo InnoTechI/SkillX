@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import AdminNavigation from '@/components/AdminNavigation';
 
 type OrderItem = {
   id: string;
@@ -63,33 +64,12 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#F6F7FB]">
-      {/* Top Nav */}
-      <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="SkillX" className="h-7 w-auto" />
-            <span className="text-sm font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-700">SKILL X</span>
-          </div>
-          <nav className="hidden md:flex items-center gap-2">
-            {['Dashboard','Orders','Messages','Payments','Revisions','Reports','Settings'].map((item, idx) => (
-              <a key={item}
-                 className={`text-sm px-3 py-2 rounded-full ${idx===0 ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-100'}`}
-                 href="#">
-                {item}
-              </a>
-            ))}
-          </nav>
-          <div className="flex items-center gap-3 text-gray-500">
-            <button aria-label="notifications">🔔</button>
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">👤</div>
-          </div>
-        </div>
-      </header>
+      <AdminNavigation />
 
       <main className="max-w-7xl mx-auto px-6 py-6">
         <div className="mb-4">
           <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500">Welcome back, Alex Johnson! Here's what's happening today.</p>
+          <p className="text-sm text-gray-500">Welcome back, Alex Johnson! Here&apos;s what&apos;s happening today.</p>
         </div>
 
         {/* Summary cards */}

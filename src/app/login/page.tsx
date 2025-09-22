@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [role, setRole] = useState<'admin' | 'user'>('admin');
@@ -34,7 +35,9 @@ export default function LoginPage() {
         localStorage.setItem('authUser', JSON.stringify(data.data.user));
       } catch {}
       const r = String(data?.data?.user?.role || '').toLowerCase();
+      console.log(r);
       window.location.href = r === 'admin' || r === 'super_admin' ? '/admin' : '/';
+
     } catch (err: any) {
       setError(err?.message || 'Login failed');
     } finally {
@@ -48,10 +51,10 @@ export default function LoginPage() {
       style={{ background: 'radial-gradient(69.05% 70.98% at 15.4% 72.36%, rgba(0, 0, 0, 0.92) 37.02%, #202FE9 62.5%, #666666 100%)' }}
     >
       <div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-xl ring-1 ring-gray-200 text-gray-900 relative">
-        <a href="/" className="absolute top-4 left-4 inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors" aria-label="Back to Home">
+        <Link href="/" className="absolute top-4 left-4 inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors" aria-label="Back to Home">
           <svg className="w-5 h-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
           <span className="text-sm font-medium">Back</span>
-        </a>
+        </Link>
 
         <div className="mb-8 pt-6">
           <div className="flex justify-center items-center gap-2 mb-4">

@@ -2,29 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { getAuthUser } from '@/lib/auth';
 import { Order } from '@/models/Order';
-
-// Simple revision interface for this implementation
-interface Revision {
-  id: string;
-  orderId: string;
-  orderNumber: string;
-  requestedBy: string;
-  requesterName: string;
-  assignedTo?: string;
-  assigneeName?: string;
-  revisionNumber: number;
-  status: 'requested' | 'in_progress' | 'completed' | 'rejected';
-  priority: 'low' | 'medium' | 'high';
-  description: string;
-  feedback?: string;
-  estimatedCompletion?: Date;
-  actualCompletion?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// In-memory storage for demo purposes (in production, use MongoDB)
-let revisions: Revision[] = [];
+import { Revision } from '@/models/Revision';
 
 export async function GET(req: Request) {
   try {
@@ -42,70 +20,72 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const orderId = searchParams.get('orderId');
     const status = searchParams.get('status');
+    const priority = searchParams.get('priority');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    let filteredRevisions = revisions;
+    // Build filter query
+    const filter: any = {};
     
     // Filter by user role
     if (user.role === 'client') {
-      filteredRevisions = revisions.filter(revision => revision.requestedBy === String(user._id));
+      filter.requestedBy = user._id;
     }
 
     // Filter by order ID if provided
     if (orderId) {
-      filteredRevisions = filteredRevisions.filter(revision => revision.orderId === orderId);
+      filter.relatedOrder = orderId;
     }
 
     // Filter by status if provided
-    if (status) {
-      filteredRevisions = filteredRevisions.filter(revision => revision.status === status);
+    if (status && ['requested', 'in_progress', 'completed', 'approved', 'rejected'].includes(status)) {
+      filter.status = status;
     }
 
-    // Sort by creation date (newest first)
-    filteredRevisions.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    // Filter by priority if provided
+    if (priority && ['low', 'medium', 'high', 'urgent'].includes(priority)) {
+      filter.priority = priority;
+    }
 
-    // Pagination
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedRevisions = filteredRevisions.slice(startIndex, endIndex);
+    // Calculate pagination
+    const skip = (page - 1) * limit;
+
+    // Fetch revisions with population
+    const revisions = await Revision.find(filter)
+      .populate('relatedOrder', 'orderNumber serviceType status')
+      .populate('requestedBy', 'name email')
+      .populate('assignedTo', 'name email')
+      .populate('requestDetails.attachments')
+      .populate('response.deliverables')
+      .sort({ 'timeline.requestedAt': -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalRevisions = await Revision.countDocuments(filter);
 
     // Calculate statistics for admin users
     let statistics = null;
     if (['admin', 'super_admin'].includes(user.role)) {
-      const statusBreakdown = filteredRevisions.reduce((acc, revision) => {
-        acc[revision.status] = (acc[revision.status] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-
-      const priorityBreakdown = filteredRevisions.reduce((acc, revision) => {
-        acc[revision.priority] = (acc[revision.priority] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-
-      statistics = {
-        totalRevisions: filteredRevisions.length,
-        statusBreakdown,
-        priorityBreakdown
-      };
+      statistics = await Revision.getRevisionStatistics();
     }
 
     return NextResponse.json({
       success: true,
       message: 'Revisions retrieved successfully',
       data: {
-        revisions: paginatedRevisions,
+        revisions,
         statistics,
         pagination: {
           currentPage: page,
-          totalItems: filteredRevisions.length,
-          totalPages: Math.ceil(filteredRevisions.length / limit),
-          hasNextPage: endIndex < filteredRevisions.length,
+          totalItems: totalRevisions,
+          totalPages: Math.ceil(totalRevisions / limit),
+          hasNextPage: (page * limit) < totalRevisions,
           hasPrevPage: page > 1
         }
       }
     });
   } catch (error: any) {
+    console.error('Error fetching revisions:', error);
     return NextResponse.json({ 
       success: false, 
       message: error.message || 'Failed to retrieve revisions', 
@@ -127,7 +107,7 @@ export async function POST(req: Request) {
       }, { status: 401 });
     }
 
-    const { orderId, description, priority = 'medium' } = await req.json();
+    const { orderId, description, priority = 'medium', specificChanges = [] } = await req.json();
 
     if (!orderId || !description) {
       return NextResponse.json({ 
@@ -156,31 +136,34 @@ export async function POST(req: Request) {
       }, { status: 403 });
     }
 
-    // Get the next revision number for this order
-    const existingRevisions = revisions.filter(rev => rev.orderId === orderId);
-    const revisionNumber = existingRevisions.length + 1;
-
-    // Set estimated completion (3 days from now for standard, 1 day for high priority)
-    const estimatedDays = priority === 'high' ? 1 : priority === 'medium' ? 2 : 3;
+    // Set estimated completion based on priority
+    const estimatedDays = priority === 'urgent' ? 1 : priority === 'high' ? 2 : priority === 'medium' ? 3 : 5;
     const estimatedCompletion = new Date();
     estimatedCompletion.setDate(estimatedCompletion.getDate() + estimatedDays);
 
-    const newRevision: Revision = {
-      id: Date.now().toString(),
-      orderId,
-      orderNumber: order.orderNumber,
-      requestedBy: String(user._id),
-      requesterName: user.fullName,
-      revisionNumber,
-      status: 'requested',
-      priority: priority as 'low' | 'medium' | 'high',
-      description: description.trim(),
-      estimatedCompletion,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    // Create new revision
+    const newRevision = new Revision({
+      relatedOrder: orderId,
+      requestedBy: user._id,
+      priority,
+      requestDetails: {
+        description: description.trim(),
+        specificChanges: specificChanges.filter((change: string) => change.trim()),
+        attachments: [] // TODO: Handle file attachments in future
+      },
+      timeline: {
+        requestedAt: new Date(),
+        expectedCompletion: estimatedCompletion
+      }
+    });
 
-    revisions.push(newRevision);
+    await newRevision.save();
+
+    // Populate the revision before returning
+    await newRevision.populate([
+      { path: 'relatedOrder', select: 'orderNumber serviceType status' },
+      { path: 'requestedBy', select: 'name email' }
+    ]);
 
     return NextResponse.json({
       success: true,
@@ -188,6 +171,7 @@ export async function POST(req: Request) {
       data: { revision: newRevision }
     }, { status: 201 });
   } catch (error: any) {
+    console.error('Error creating revision:', error);
     return NextResponse.json({ 
       success: false, 
       message: error.message || 'Failed to request revision', 
