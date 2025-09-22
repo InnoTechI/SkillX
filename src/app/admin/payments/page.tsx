@@ -93,61 +93,86 @@ export default function PaymentsPage() {
         {/* Transactions Table */}
         <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Transactions</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-gray-900">Payment Transactions</span>
+            </div>
             <div className="flex gap-2">
-              <select className="px-3 py-1 border border-gray-300 rounded-lg text-sm">
-                <option>All Status</option>
-                <option>Completed</option>
-                <option>Pending</option>
-                <option>Failed</option>
-              </select>
-              <button className="px-4 py-1 bg-gray-900 text-white rounded-lg text-sm hover:bg-gray-700">
-                Export
+              <button className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">
+                ⬇️ <span>Export</span>
               </button>
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {transactions.map((txn) => (
-                  <tr key={txn.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{txn.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{txn.customer}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{txn.order}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{txn.amount}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        txn.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                        txn.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {txn.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{txn.method}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{txn.date}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button className="text-blue-600 hover:text-blue-900 mr-3">View</button>
-                      {txn.status === 'Pending' && (
-                        <button className="text-green-600 hover:text-green-900">Approve</button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+          {/* Transactions List */}
+          <div className="divide-y divide-gray-100">
+            {transactions.map((txn) => (
+              <div key={txn.id} className="px-6 py-5 flex items-center gap-6 justify-between">
+                {/* ID + order */}
+                <div className="min-w-[180px]">
+                  <div className="text-sm font-semibold text-gray-900">{txn.id}</div>
+                  <div className="text-[11px] text-gray-500">{txn.order}</div>
+                </div>
+
+                {/* Customer */}
+                <div className="flex-1 min-w-[200px]">
+                  <div className="text-sm text-gray-900">{txn.customer}</div>
+                </div>
+
+                {/* Amount + method */}
+                <div className="min-w-[160px] text-left">
+                  <div className="text-sm font-semibold text-gray-900">{txn.amount}</div>
+                  <div className="text-[11px] text-gray-500">{txn.method}</div>
+                </div>
+
+                {/* Status + date + receipt note */}
+                <div className="min-w-[260px] flex items-center gap-6">
+                  <span
+                    className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
+                      txn.status === 'Completed'
+                        ? 'bg-green-100 text-green-800'
+                        : txn.status === 'Pending'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block w-3 h-3 rounded-full ${
+                        txn.status === 'Completed'
+                          ? 'bg-green-500'
+                          : txn.status === 'Pending'
+                          ? 'bg-yellow-400'
+                          : 'bg-red-500'
+                      }`}
+                    />
+                    {txn.status}
+                  </span>
+                  <div className="text-[11px] text-gray-500">{txn.date}</div>
+                  <div className="text-[11px] text-gray-500 hidden md:block">
+                    {txn.status === 'Pending' ? 'No Receipt' : 'Receipt Available'}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2">
+                  {txn.status === 'Pending' ? (
+                    <button className="px-4 py-2 rounded-lg text-xs font-medium bg-[rgba(98,127,248,1)] text-white hover:opacity-90">
+                      Confirm Payment
+                    </button>
+                  ) : (
+                    <>
+                      <button className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs bg-gray-100 text-gray-700 hover:bg-gray-200">
+                        <span>👁️</span>
+                        <span>View Details</span>
+                      </button>
+                      <button className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs bg-gray-100 text-gray-700 hover:bg-gray-200">
+                        <span>🧾</span>
+                        <span>Receipt</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </main>
