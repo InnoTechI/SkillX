@@ -71,11 +71,19 @@ export default function AdminDashboardPage() {
             <span className="text-sm font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-700">SKILL X</span>
           </div>
           <nav className="hidden md:flex items-center gap-2">
-            {['Dashboard','Orders','Messages','Payments','Revisions','Reports','Settings'].map((item, idx) => (
-              <a key={item}
-                 className={`text-sm px-3 py-2 rounded-full ${idx===0 ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-100'}`}
-                 href="#">
-                {item}
+            {[
+              { name: 'Dashboard', href: '/admin' },
+              { name: 'Orders', href: '/admin/orders' },
+              { name: 'Messages', href: '/admin/messages' },
+              { name: 'Payments', href: '/admin/payments' },
+              { name: 'Revisions', href: '/admin/revisions' },
+              { name: 'Reports', href: '/admin/reports' },
+              { name: 'Settings', href: '/admin/settings' }
+            ].map((item, idx) => (
+              <a key={item.name}
+                 className={`text-sm px-3 py-2 rounded-full ${item.name === 'Dashboard' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-100'}`}
+                 href={item.href}>
+                {item.name}
               </a>
             ))}
           </nav>
@@ -160,15 +168,15 @@ export default function AdminDashboardPage() {
 
 function renderStatus(status: OrderItem['status']) {
   const map: Record<OrderItem['status'], { color: string; label: string }> = {
-    'In Progress': { color: '#3B82F6', label: 'In Progress' },
-    'New': { color: '#6366F1', label: 'New' },
-    'Pending Revision': { color: '#8B5CF6', label: 'Pending Revision' },
-    'Completed': { color: '#10B981', label: 'Completed' }
+    'In Progress': { color: 'rgba(98, 127, 248, 1)', label: 'In Progress' },
+    'New': { color: 'rgba(98, 127, 248, 1)', label: 'New' },
+    'Pending Revision': { color: 'rgba(98, 127, 248, 1)', label: 'Pending Revision' },
+    'Completed': { color: 'rgba(98, 127, 248, 1)', label: 'Completed' }
   };
   const item = map[status];
   return (
-    <span className="inline-flex items-center gap-1 align-middle ml-2 text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${item.color}1A`, color: item.color }}>
-      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }} />
+    <span className="inline-flex items-center gap-1 align-middle ml-2 text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: item.color, color: 'white' }}>
+      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'white' }} />
       {item.label}
     </span>
   );

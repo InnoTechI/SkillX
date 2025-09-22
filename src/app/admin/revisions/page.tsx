@@ -98,16 +98,16 @@ export default function RevisionsPage() {
               <input
                 type="text"
                 placeholder="Search revision requests..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder-black"
               />
             </div>
-            <select className="px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select className="px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
               <option>All Status</option>
               <option>Pending</option>
               <option>In Progress</option>
               <option>Completed</option>
             </select>
-            <select className="px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select className="px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
               <option>All Priority</option>
               <option>High</option>
               <option>Medium</option>

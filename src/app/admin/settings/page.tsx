@@ -23,8 +23,10 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'profile', name: 'Profile', icon: '👤' },
     { id: 'security', name: 'Security', icon: '🔒' },
+    { id: 'delivery', name: 'Delivery', icon: '🚚' },
     { id: 'notifications', name: 'Notifications', icon: '🔔' },
-    { id: 'billing', name: 'Billing', icon: '💳' }
+    { id: 'appearance', name: 'Appearance', icon: '🎨' },
+    { id: 'permissions', name: 'Permissions', icon: '⚙️' }
   ];
 
   return (
@@ -65,32 +67,50 @@ export default function SettingsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
           <p className="text-gray-600">Manage your account settings and preferences</p>
         </div>
+        {/* Horizontal tabs */}
+        <div className="mb-4 overflow-x-auto">
+          <div className="flex items-center gap-4 min-w-max">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border ${
+                  activeTab === tab.id
+                    ? 'bg-gray-100 text-gray-900 border-gray-200'
+                    : 'text-gray-600 hover:bg-gray-50 border-transparent'
+                }`}
+              >
+                <span>{tab.icon}</span>
+                <span className="text-sm font-medium">{tab.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
+          {/* Left profile summary */}
+          <aside className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6">
-              <nav className="space-y-2">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
-                      activeTab === tab.id
-                        ? 'bg-gray-100 text-gray-900'
-                        : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="text-lg">{tab.icon}</span>
-                    <span className="font-medium">{tab.name}</span>
-                  </button>
-                ))}
-              </nav>
-            </div>
-          </div>
+              <div className="flex flex-col items-center text-center">
+                <div className="w-24 h-24 rounded-full bg-[#E5E7EB] flex items-center justify-center text-2xl font-bold text-indigo-700 select-none">
+                  AU
+                </div>
+                <div className="mt-3 font-semibold text-gray-900">Admin User</div>
+                <span className="mt-2 inline-flex px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-700">Manager</span>
+              </div>
 
-          {/* Content */}
-          <div className="lg:col-span-3">
+              <div className="mt-6 space-y-3 text-sm">
+                <div className="flex justify-between text-gray-600"><span>Email:</span><span className="text-gray-900">admin@skillx.com</span></div>
+                <div className="flex justify-between text-gray-600"><span>Phone:</span><span className="text-gray-900">+91 12345 67890</span></div>
+                <div className="flex justify-between text-gray-600"><span>Orders Assigned:</span><span className="text-gray-900">45</span></div>
+                <div className="flex justify-between text-gray-600"><span>Joined On:</span><span className="text-gray-900">January 15, 2025</span></div>
+                <div className="flex justify-between text-gray-600"><span>Last Login:</span><span className="text-gray-900">Today, 9:24 AM</span></div>
+              </div>
+            </div>
+          </aside>
+
+          {/* Right content card */}
+          <section className="lg:col-span-3">
             <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6">
               {activeTab === 'profile' && (
                 <div>
@@ -110,53 +130,61 @@ export default function SettingsPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                         <input
                           type="text"
-                          defaultValue="Alex"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          defaultValue="Admin User"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder-black"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                         <input
-                          type="text"
-                          defaultValue="Johnson"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          type="email"
+                          defaultValue="admin@skillx.com"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder-black"
                         />
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                      <input
-                        type="email"
-                        defaultValue="alex.johnson@skillx.com"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <input
+                          type="tel"
+                          defaultValue="+91 12345 67890"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder-black"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                        <div className="inline-flex px-3 py-1 rounded-full bg-lime-100 text-lime-700 text-xs font-medium">Admin</div>
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                      <input
-                        type="tel"
-                        defaultValue="+1 (555) 123-4567"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Date Joined</label>
+                        <input
+                          type="text"
+                          defaultValue="January 15, 2025"
+                          disabled
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Last Login</label>
+                        <input
+                          type="text"
+                          defaultValue="Today, 9:24 PM"
+                          disabled
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-500"
+                        />
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-                      <input
-                        type="text"
-                        defaultValue="Admin"
-                        disabled
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-500"
-                      />
-                    </div>
-
-                    <div className="flex justify-end">
-                      <button className="px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-700">
+                    <div className="pt-2">
+                      <button className="w-full h-10 bg-[rgba(98,127,248,1)] text-white rounded-lg font-medium hover:opacity-90">
                         Save Changes
                       </button>
                     </div>
@@ -175,21 +203,21 @@ export default function SettingsPage() {
                           <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
                           <input
                             type="password"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder-black"
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
                           <input
                             type="password"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder-black"
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
                           <input
                             type="password"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder-black"
                           />
                         </div>
                         <button className="px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-700">
@@ -310,7 +338,7 @@ export default function SettingsPage() {
                 </div>
               )}
             </div>
-          </div>
+          </section>
         </div>
       </main>
     </div>
