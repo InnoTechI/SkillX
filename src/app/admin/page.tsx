@@ -1,6 +1,33 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { TokenManager } from '@/lib/http';
+
+interface DashboardStats {
+  totalOrders: number;
+  totalUsers: number;
+  totalRevenue: number;
+  recentOrders: Array<{
+    _id: string;
+    orderNumber: string;
+    client: {
+      name: string;
+      email: string;
+    };
+    status: string;
+    totalAmount: number;
+    createdAt: string;
+    resumeType: string;
+  }>;
+  ordersByStatus: {
+    pending: number;
+    in_progress: number;
+    under_review: number;
+    completed: number;
+    cancelled: number;
+  };
+}
 
 type OrderItem = {
   id: string;
@@ -11,54 +38,141 @@ type OrderItem = {
 };
 
 export default function AdminDashboardPage() {
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const [dashboardData, setDashboardData] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (authLoading) return; // Wait for auth to load
+    
+    if (!isAuthenticated || !user) {
+      window.location.href = '/login';
+      return;
+    }
+
+    // Check if user has admin role
+    const role = String(user?.role || '').toLowerCase();
+    const hasAdminAccess = role === 'admin' || role === 'super_admin';
+    
+    if (!hasAdminAccess) {
+      window.location.href = '/login';
+      return;
+    }
+
+    fetchDashboardData();
+  }, [isAuthenticated, user, authLoading]);
+
+  const fetchDashboardData = async () => {
     try {
-      const raw = localStorage.getItem('authUser');
-      if (!raw) {
-        setIsAuthorized(false);
+      const token = TokenManager.getAccessToken();
+      if (!token) {
+        setError('No authentication token found');
         return;
       }
-      const user = JSON.parse(raw || '{}');
-      const role = String(user?.role || '').toLowerCase();
-      const ok = role === 'admin' || role === 'super_admin';
-      setIsAuthorized(ok);
-      if (!ok) {
-        window.location.href = '/login';
-      }
-    } catch {
-      setIsAuthorized(false);
-      window.location.href = '/login';
-    }
-  }, []);
 
-  if (isAuthorized === null) {
+      const response = await fetch('/api/admin/dashboard', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch dashboard data');
+      }
+      const data = await response.json();
+      setDashboardData(data.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-500">Loading…</div>
     );
   }
 
-  if (!isAuthorized) return null;
+  if (!isAuthenticated || !user) return null;
+
+  const role = String(user?.role || '').toLowerCase();
+  const hasAdminAccess = role === 'admin' || role === 'super_admin';
+  
+  if (!hasAdminAccess) return null;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500">Loading dashboard...</div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        Error loading dashboard: {error}
+      </div>
+    );
+  }
+
+  if (!dashboardData) return null;
 
   const summary = [
-    { label: 'Total Application Today', icon: '📋', value: '12', sub: '+3 from yesterday' },
-    { label: 'Resumes In Progress', icon: '⏱️', value: '24', sub: '8 assigned today' },
-    { label: 'Resumes Delivered', icon: '✅', value: '156', sub: '+12 this week' },
-    { label: 'Pending Payments', icon: '💳', value: '$2,340', sub: '5 invoices pending' }
+    { 
+      label: 'Total Orders', 
+      icon: '📋', 
+      value: dashboardData.totalOrders.toString(), 
+      sub: `${dashboardData.ordersByStatus.pending} pending` 
+    },
+    { 
+      label: 'Orders In Progress', 
+      icon: '⏱️', 
+      value: dashboardData.ordersByStatus.in_progress.toString(), 
+      sub: `${dashboardData.ordersByStatus.under_review} under review` 
+    },
+    { 
+      label: 'Orders Completed', 
+      icon: '✅', 
+      value: dashboardData.ordersByStatus.completed.toString(), 
+      sub: `${dashboardData.ordersByStatus.cancelled} cancelled` 
+    },
+    { 
+      label: 'Total Revenue', 
+      icon: '💳', 
+      value: `$${dashboardData.totalRevenue.toFixed(2)}`, 
+      sub: `from ${dashboardData.totalOrders} orders` 
+    }
   ];
 
-  const orders: OrderItem[] = [
-    { id: 'ORD-001', customer: 'John Smith', title: 'Executive Resume', status: 'In Progress', due: '2025-01-15' },
-    { id: 'ORD-002', customer: 'Sarah Johnson', title: 'Entry level Resume', status: 'New', due: '2025-01-15' },
-    { id: 'ORD-003', customer: 'Mike Davis', title: 'Career Change Resume', status: 'Pending Revision', due: '2025-01-15' },
-    { id: 'ORD-004', customer: 'Emily Chen', title: 'Technical Resume', status: 'Completed', due: '2025-01-15' }
-  ];
+  // Convert recent orders to the expected format
+  const orders: OrderItem[] = dashboardData.recentOrders.map(order => ({
+    id: order.orderNumber,
+    customer: order.client.name,
+    title: order.resumeType,
+    status: mapOrderStatus(order.status),
+    due: new Date(order.createdAt).toLocaleDateString()
+  }));
 
   const bottomStats = [
-    { label: 'This Month', value: '67 Resumes', sub: '+12% from last month', icon: '📈' },
-    { label: 'Active Users', value: '234', sub: '+8 new this week', icon: '👥' },
-    { label: 'Revenue', value: '$12,450', sub: '+15% this month', icon: '💲' }
+    { 
+      label: 'Total Users', 
+      value: `${dashboardData.totalUsers} Users`, 
+      sub: 'registered in system', 
+      icon: '👥' 
+    },
+    { 
+      label: 'Revenue', 
+      value: `$${dashboardData.totalRevenue.toFixed(2)}`, 
+      sub: 'total earnings', 
+      icon: '💲' 
+    },
+    { 
+      label: 'Completion Rate', 
+      value: `${Math.round((dashboardData.ordersByStatus.completed / dashboardData.totalOrders) * 100)}%`, 
+      sub: 'orders completed', 
+      icon: '📈' 
+    }
   ];
 
   return (
@@ -79,7 +193,7 @@ export default function AdminDashboardPage() {
               { name: 'Revisions', href: '/admin/revisions' },
               { name: 'Reports', href: '/admin/reports' },
               { name: 'Settings', href: '/admin/settings' }
-            ].map((item, idx) => (
+            ].map((item) => (
               <a key={item.name}
                  className={`text-sm px-3 py-2 rounded-full ${item.name === 'Dashboard' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-100'}`}
                  href={item.href}>
@@ -97,7 +211,7 @@ export default function AdminDashboardPage() {
       <main className="max-w-7xl mx-auto px-6 py-6">
         <div className="mb-4">
           <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500">Welcome back, Alex Johnson! Here's what's happening today.</p>
+          <p className="text-sm text-gray-500">Welcome back! Here&apos;s what&apos;s happening today.</p>
         </div>
 
         {/* Summary cards */}
@@ -124,7 +238,7 @@ export default function AdminDashboardPage() {
               <span className="text-sm font-semibold text-gray-900">Recent Orders</span>
             </div>
             <ul className="divide-y divide-gray-100">
-              {orders.map((o) => (
+              {orders.length > 0 ? orders.map((o) => (
                 <li key={o.id} className="px-5 py-4 flex items-start justify-between">
                   <div className="space-y-1">
                     <div className="text-xs text-gray-500">{o.id} {renderStatus(o.status)}</div>
@@ -133,7 +247,11 @@ export default function AdminDashboardPage() {
                   </div>
                   <div className="text-[11px] text-gray-500">{o.due ? `Due\n${o.due}` : ''}</div>
                 </li>
-              ))}
+              )) : (
+                <li className="px-5 py-8 text-center text-gray-500">
+                  No orders found
+                </li>
+              )}
             </ul>
           </div>
 
@@ -141,9 +259,9 @@ export default function AdminDashboardPage() {
           <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-5">
             <div className="text-sm font-semibold text-gray-900 mb-4">Notifications</div>
             <div className="space-y-4 text-sm">
-              <Notification dotColor="#EF4444" title="Payment confirmation needed for ORD-001" time="5 min ago" />
-              <Notification dotColor="#3B82F6" title="New message from Sarah Johnson" time="15 min ago" />
-              <Notification dotColor="#10B981" title="Resume delivered for ORD-004" time="1 hour ago" />
+              <Notification dotColor="#EF4444" title="Check recent orders for updates" time="Live" />
+              <Notification dotColor="#3B82F6" title="Dashboard refreshed with real data" time="Now" />
+              <Notification dotColor="#10B981" title="System connected to database" time="Active" />
             </div>
           </div>
         </div>
@@ -164,6 +282,21 @@ export default function AdminDashboardPage() {
       </main>
     </div>
   );
+}
+
+function mapOrderStatus(status: string): OrderItem['status'] {
+  switch (status.toLowerCase()) {
+    case 'pending':
+      return 'New';
+    case 'in_progress':
+      return 'In Progress';
+    case 'under_review':
+      return 'Pending Revision';
+    case 'completed':
+      return 'Completed';
+    default:
+      return 'New';
+  }
 }
 
 function renderStatus(status: OrderItem['status']) {
@@ -196,6 +329,3 @@ function Notification({ dotColor, title, time }: NotificationProps) {
     </div>
   );
 }
-
-
-

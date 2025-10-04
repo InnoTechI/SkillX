@@ -18,7 +18,7 @@ interface FileRecord {
 }
 
 // In-memory storage for demo purposes (in production, use MongoDB and actual file storage)
-let fileRecords: FileRecord[] = [];
+const fileRecords: FileRecord[] = [];
 
 export async function GET(req: Request) {
   try {

@@ -26,16 +26,23 @@ export function verifyRefreshToken(token: string) {
   try {
     const decoded = jwt.verify(token, secret as jwtTypes.Secret) as any;
     return decoded.type === 'refresh' ? { userId: decoded.id } : null;
-  } catch (error) {
-    return null;
+  } catch {
+      return null;
   }
 }
 
 export async function getAuthUser(req: Request) {
-  const auth = req.headers.get('authorization');
-  if (!auth?.startsWith('Bearer ')) return null;
-  const token = auth.replace('Bearer ', '');
-  const decoded = verifyAccessToken(token);
-  const user = await (User as any).findById((decoded as any).id);
-  return user || null;
+  try {
+    const auth = req.headers.get('authorization');
+    if (!auth?.startsWith('Bearer ')) return null;
+    const token = auth.replace('Bearer ', '');
+    const decoded = verifyAccessToken(token);
+    // JWT uses 'id' field from signAccessToken
+    const userId = (decoded as any).id;
+    const user = await (User as any).findById(userId);
+    return user || null;
+  } catch (error) {
+    console.error('Auth error:', error);
+    return null;
+  }
 }

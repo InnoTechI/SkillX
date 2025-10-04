@@ -1,53 +1,174 @@
-# SkillX
+# SkillX - Professional Career Services Platform
 
-Next.js app with integrated API routes (TypeScript). The legacy Express backend has been migrated into Next.js API handlers under `src/app/api/*` and the `backend/` folder removed.
+> A comprehensive Next.js application for professional resume writing, career consultation, and talent development services.
 
-- Database: MongoDB via Mongoose (`src/lib/db.ts`)
-- Auth: JWT helpers (`src/lib/auth.ts`)
-- Models: `src/models/User.ts`, `src/models/Order.ts`
-- Routes: `src/app/api/*`
+[![Next.js](https://img.shields.io/badge/Next.js-15.5.2-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green)](https://www.mongodb.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.0-38B2AC)](https://tailwindcss.com/)
 
-Run:
-- dev: next dev
-- build: next build
-- start: next start
+## 🚀 Overview
 
-Env vars needed: MONGODB_URI, JWT_SECRET (and optional refresh/others).# SkillX Admin Backend
+SkillX is a modern, full-stack career services platform that connects professionals with expert resume writers, career consultants, and talent development specialists. Built with Next.js 15, TypeScript, and MongoDB Atlas, it provides a seamless experience for both clients and administrators.
 
-A comprehensive, enterprise-grade backend API system for managing a resume-writing service business. This system provides complete order management, client communication, payment processing, file handling, revision tracking, and analytics capabilities.
+### ✨ Key Features
 
-## 🚀 Features
+- **🎯 Professional Resume Writing** - Expert-crafted resumes tailored to specific industries
+- **💼 Career Consultation** - One-on-one guidance from experienced career professionals  
+- **📝 Cover Letter Services** - Compelling cover letters that get noticed
+- **🔗 LinkedIn Optimization** - Professional profile enhancement for maximum visibility
+- **👥 Admin Dashboard** - Comprehensive order and client management system
+- **💬 Real-time Messaging** - Direct communication between clients and assigned experts
+- **📊 Analytics & Reporting** - Business insights and performance tracking
+- **🔒 Role-based Access Control** - Secure authentication for clients, admins, and super admins
 
-### Core Business Operations
-- **Order Management** - Complete order lifecycle from creation to delivery
-- **Payment Processing** - Secure payment handling with confirmation and refund capabilities
-- **File Management** - Cloudinary-integrated file storage with version control
-- **Revision System** - Comprehensive revision request and tracking system
-- **Client Communication** - Real-time chat system between clients and admins
-- **Analytics & Reporting** - Business insights and performance metrics
+## 🏗️ Tech Stack
 
-### Security & Enterprise Features
-- **Role-based Authentication** - JWT-based auth with client/admin/super_admin roles
-- **Comprehensive Validation** - Input validation and sanitization at every level
-- **Enterprise Logging** - Structured logging with Winston for audit trails
-- **Rate Limiting** - API protection with configurable limits
-- **Data Security** - MongoDB sanitization, XSS protection, and secure headers
+### Frontend
+- **Next.js 15** - React framework with App Router
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first CSS framework
+- **React Context** - State management for authentication
 
-## 📚 API Documentation
+### Backend
+- **Next.js API Routes** - Server-side API endpoints
+- **MongoDB Atlas** - Cloud database solution
+- **JWT Authentication** - Secure token-based auth
+- **Mongoose** - MongoDB object modeling
+
+### Infrastructure
+- **Vercel** - Deployment and hosting platform
+- **Cloudinary** (Ready) - File storage and management
+- **Winston Logging** - Structured application logging
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18.17+ 
+- MongoDB Atlas account
+- Git
+
+### Installation
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/InnoTechI/SkillX.git
+cd SkillX
+```
+
+2. **Install dependencies**
+```bash
+npm install
+```
+
+3. **Environment Setup**
+```bash
+cp .env.local.example .env.local
+```
+
+Configure your `.env.local`:
+```env
+# Database
+MONGODB_URI=your_mongodb_atlas_connection_string
+
+# Authentication
+JWT_SECRET=your_super_secure_jwt_secret
+JWT_REFRESH_SECRET=your_refresh_token_secret
+
+# Optional: File Upload
+CLOUDINARY_CLOUD_NAME=your_cloudinary_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
+
+4. **Start development server**
+```bash
+npm run dev
+```
+
+Visit [http://localhost:3000](http://localhost:3000) to see the application.
+
+## 📁 Project Structure
+
+```
+SkillX/
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── (routes)/
+│   │   │   ├── login/         # Authentication pages
+│   │   │   ├── register/      # User registration
+│   │   │   └── admin/         # Admin dashboard
+│   │   │       ├── messages/  # Client communication
+│   │   │       ├── orders/    # Order management
+│   │   │       ├── payments/  # Payment processing
+│   │   │       └── reports/   # Analytics & reports
+│   │   ├── api/               # API Routes
+│   │   │   ├── auth/         # Authentication endpoints
+│   │   │   ├── orders/       # Order management API
+│   │   │   ├── payments/     # Payment processing API
+│   │   │   ├── chat/         # Messaging system API
+│   │   │   └── analytics/    # Business analytics API
+│   │   ├── globals.css       # Global styles
+│   │   ├── layout.tsx        # Root layout
+│   │   └── page.tsx          # Homepage
+│   ├── components/           # React components
+│   │   ├── HeroSection.tsx
+│   │   ├── FeaturesSection.tsx
+│   │   ├── TestimonialsSection.tsx
+│   │   └── Footer.tsx
+│   ├── contexts/            # React Context providers
+│   │   └── AuthContext.tsx  # Authentication state
+│   ├── lib/                 # Utility libraries
+│   │   ├── auth.ts         # JWT utilities
+│   │   ├── db.ts           # MongoDB connection
+│   │   ├── http.ts         # HTTP client utilities
+│   │   └── logging/        # Winston logger setup
+│   └── models/             # Database models
+│       ├── User.ts         # User schema
+│       └── Order.ts        # Order schema
+├── public/                 # Static assets
+├── docs/                   # Documentation
+├── scripts/               # Database utilities
+└── postman/              # API testing collection
+```
+
+## 🔐 Authentication & Authorization
+
+### User Roles
+
+| Role | Access Level | Capabilities |
+|------|-------------|--------------|
+| **Client** | Basic | Place orders, communicate with assigned experts, track progress |
+| **Admin** | Management | Manage assigned orders, process payments, handle client communication |
+| **Super Admin** | Full Access | System-wide management, analytics, user administration |
+
+### API Authentication
+
+All protected endpoints require JWT tokens:
+
+```javascript
+// Headers for authenticated requests
+{
+  "Authorization": "Bearer your_jwt_token",
+  "Content-Type": "application/json"
+}
+```
+
+## 📡 API Documentation
 
 ### Authentication Endpoints
 
-#### Register Admin
+#### Register User
 ```http
-POST /api/auth/register
+POST /api/auth/register-user
 Content-Type: application/json
 
 {
   "firstName": "John",
-  "lastName": "Doe",
-  "email": "admin@skillx.com",
-  "password": "SecurePassword123!",
-  "role": "admin"
+  "lastName": "Doe", 
+  "email": "john@example.com",
+  "password": "SecurePass123!"
 }
 ```
 
@@ -57,18 +178,8 @@ POST /api/auth/login
 Content-Type: application/json
 
 {
-  "email": "admin@skillx.com",
-  "password": "SecurePassword123!"
-}
-```
-
-#### Refresh Token
-```http
-POST /api/auth/refresh
-Content-Type: application/json
-
-{
-  "refreshToken": "your_refresh_token_here"
+  "email": "user@example.com",
+  "password": "SecurePass123!"
 }
 ```
 
@@ -77,479 +188,242 @@ Content-Type: application/json
 #### Create Order
 ```http
 POST /api/orders
-Authorization: Bearer your_jwt_token
+Authorization: Bearer token
 Content-Type: application/json
 
 {
-  "client": "client_user_id",
-  "serviceType": "professional_resume",
-  "requirements": {
-    "targetRole": "Software Engineer",
-    "industry": "Technology",
-    "experienceLevel": "mid_level",
-    "additionalServices": ["cover_letter", "linkedin_optimization"]
-  },
+  "serviceType": "resume_writing",
+  "requirements": "Professional resume for software engineer role",
+  "deadline": "2024-02-15T00:00:00.000Z",
   "pricing": {
     "basePrice": 199.99,
-    "additionalServicesPricing": 49.99,
-    "total": 249.98
-  },
-  "timeline": {
-    "deadline": "2024-02-15T00:00:00.000Z",
-    "estimatedCompletion": "2024-02-10T00:00:00.000Z"
+    "total": 199.99
   }
 }
 ```
 
-#### Get All Orders
+#### Get Orders
 ```http
-GET /api/orders?page=1&limit=10&status=pending&serviceType=professional_resume
-Authorization: Bearer your_jwt_token
+GET /api/orders?page=1&limit=10&status=in_progress
+Authorization: Bearer token
 ```
 
-#### Update Order Status
+### Messaging System
+
+#### Get Conversations
 ```http
-PUT /api/orders/:orderId/status
-Authorization: Bearer your_jwt_token
-Content-Type: application/json
-
-{
-  "status": "in_progress",
-  "note": "Started working on the resume"
-}
-```
-
-#### Assign Order to Admin
-```http
-PUT /api/orders/:orderId/assign
-Authorization: Bearer your_jwt_token
-Content-Type: application/json
-
-{
-  "adminId": "admin_user_id",
-  "note": "Assigned to specialist"
-}
-```
-
-### Payment Management
-
-#### Get All Payments
-```http
-GET /api/payments?page=1&limit=10&status=pending&paymentMethod=stripe
-Authorization: Bearer your_jwt_token
-```
-
-#### Confirm Payment
-```http
-PUT /api/payments/:paymentId/confirm
-Authorization: Bearer your_jwt_token
-Content-Type: application/json
-
-{
-  "confirmationDetails": {
-    "transactionId": "txn_1234567890",
-    "gateway": "stripe",
-    "amount": 249.98
-  },
-  "adminNote": "Payment verified and confirmed"
-}
-```
-
-#### Process Refund
-```http
-POST /api/payments/:paymentId/refund
-Authorization: Bearer your_jwt_token
-Content-Type: application/json
-
-{
-  "amount": 249.98,
-  "reason": "client_cancellation",
-  "description": "Full refund due to client request"
-}
-```
-
-### File Management
-
-#### Upload Files
-```http
-POST /api/orders/:orderId/files
-Authorization: Bearer your_jwt_token
-Content-Type: multipart/form-data
-
-files: [file1.pdf, file2.docx]
-fileType: "resume"
-description: "Initial resume drafts"
-visibility: "order_specific"
-tags: ["draft", "version1"]
-```
-
-#### Get Files
-```http
-GET /api/files?page=1&limit=10&fileType=resume&orderId=order_id
-Authorization: Bearer your_jwt_token
-```
-
-#### Download File
-```http
-GET /api/files/:fileId/download
-Authorization: Bearer your_jwt_token
-```
-
-### Revision Management
-
-#### Create Revision Request
-```http
-POST /api/revisions
-Authorization: Bearer your_jwt_token
-Content-Type: application/json
-
-{
-  "order": "order_id",
-  "type": "content",
-  "priority": "high",
-  "urgencyLevel": "express",
-  "requestDetails": {
-    "description": "Please update the experience section to highlight leadership skills",
-    "specificChanges": [
-      "Add quantified achievements",
-      "Emphasize team management experience"
-    ]
-  },
-  "timeline": {
-    "preferredDeadline": "2024-02-20T00:00:00.000Z"
-  }
-}
-```
-
-#### Get All Revisions
-```http
-GET /api/revisions?page=1&limit=10&status=pending&priority=high
-Authorization: Bearer your_jwt_token
-```
-
-#### Complete Revision
-```http
-PUT /api/revisions/:revisionId/complete
-Authorization: Bearer your_jwt_token
-Content-Type: application/json
-
-{
-  "changesSummary": "Updated experience section with quantified achievements and leadership focus",
-  "revisedFiles": ["file_id_1", "file_id_2"],
-  "clientNotes": "Revision completed as requested"
-}
-```
-
-### Chat & Communication
-
-#### Get Chat Room for Order
-```http
-GET /api/orders/:orderId/chat
-Authorization: Bearer your_jwt_token
-```
-
-#### Get Messages
-```http
-GET /api/orders/:orderId/messages?page=1&limit=50
-Authorization: Bearer your_jwt_token
+GET /api/admin/messages
+Authorization: Bearer admin_token
 ```
 
 #### Send Message
 ```http
-POST /api/orders/:orderId/messages
-Authorization: Bearer your_jwt_token
+POST /api/chat
+Authorization: Bearer token
 Content-Type: application/json
 
 {
-  "content": "Hello! I have a question about the resume format.",
-  "messageType": "text",
-  "priority": "normal",
-  "isInternal": false
+  "orderId": "order_id",
+  "content": "Hello, I have a question about my order",
+  "sender": "client"
 }
 ```
 
-### Analytics & Reporting
+### Analytics (Admin Only)
 
 #### Dashboard Analytics
 ```http
-GET /api/analytics/dashboard?startDate=2024-01-01&endDate=2024-02-01
-Authorization: Bearer your_jwt_token
+GET /api/analytics?startDate=2024-01-01&endDate=2024-02-01
+Authorization: Bearer admin_token
 ```
 
-#### Revenue Analytics
-```http
-GET /api/analytics/revenue?groupBy=month&serviceType=professional_resume
-Authorization: Bearer your_jwt_token
-```
+## 🎨 Features In Detail
 
-#### Performance Metrics
-```http
-GET /api/analytics/performance?startDate=2024-01-01&endDate=2024-02-01
-Authorization: Bearer your_jwt_token
-```
+### Client Experience
+- **Service Selection** - Choose from resume writing, career consultation, cover letters
+- **Requirements Specification** - Detailed forms to capture client needs
+- **Real-time Communication** - Direct messaging with assigned experts
+- **Progress Tracking** - Live updates on order status and milestones
+- **File Management** - Secure upload and download of documents
 
-#### Export Reports
-```http
-GET /api/analytics/reports/export?reportType=orders&format=json&startDate=2024-01-01
-Authorization: Bearer your_jwt_token
-```
+### Admin Dashboard
+- **Order Management** - Complete order lifecycle management
+- **Client Communication** - Centralized messaging system with all clients
+- **Payment Processing** - Secure payment confirmation and refund handling
+- **Analytics & Reports** - Business insights and performance metrics
+- **User Management** - Client and admin account administration
 
-## 🛠️ Installation & Setup
+### Business Logic
+- **Smart Assignment** - Automatic order assignment to available experts
+- **Role-based Filtering** - Admins see only their assigned conversations
+- **Status Tracking** - Complete order lifecycle from creation to delivery
+- **Quality Control** - Built-in revision and approval workflows
 
-### Prerequisites
-- Node.js (v16 or higher)
-- MongoDB (v4.4 or higher)
-- Cloudinary account for file storage
+## 🔧 Development
 
-### Environment Configuration
-
-Create a `.env` file in the backend directory:
-
-```env
-# Server Configuration
-NODE_ENV=development
-PORT=5000
-
-# Database
-MONGODB_URI=mongodb://localhost:27017/skillx_admin
-DB_NAME=skillx_admin
-
-# JWT Configuration
-JWT_SECRET=your_super_secure_jwt_secret_key_here
-JWT_EXPIRES_IN=1h
-JWT_REFRESH_SECRET=your_super_secure_refresh_secret_key_here
-JWT_REFRESH_EXPIRES_IN=7d
-
-# Cloudinary Configuration
-CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-
-# Security Configuration
-BCRYPT_ROUNDS=12
-MAX_LOGIN_ATTEMPTS=5
-LOCK_TIME_MINUTES=30
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-
-# CORS Configuration
-CORS_ORIGIN=http://localhost:3000
-CORS_CREDENTIALS=true
-
-# Logging Configuration
-LOG_LEVEL=info
-LOG_FILE_PATH=logs/app.log
-LOG_ERROR_FILE_PATH=logs/error.log
-```
-
-### Installation Steps
-
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd SkillX/backend
-```
-
-2. **Install dependencies**
-```bash
-npm install
-```
-
-3. **Set up environment variables**
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-4. **Start MongoDB**
-```bash
-# Using MongoDB service
-sudo systemctl start mongod
-
-# Or using Docker
-docker run -d -p 27017:27017 --name mongodb mongo:latest
-```
-
-5. **Start the development server**
-```bash
-npm run dev
-```
-
-The server will start on `http://localhost:5000`
-
-### Production Deployment
-
-For production deployment:
+### Available Scripts
 
 ```bash
-npm run build
-npm start
+# Development
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
+
+# Database Management
+node scripts/seed-db.js              # Seed sample data
+node scripts/check-admin-assignments.js  # Verify admin assignments
 ```
 
-## 📁 Project Structure
+### Database Scripts
 
-```
-backend/
-├── src/
-│   ├── middleware/          # Authentication, error handling, validation
-│   │   ├── auth.js         # JWT authentication & authorization
-│   │   └── errorHandler.js # Global error handling
-│   ├── models/             # MongoDB schemas
-│   │   ├── User.js         # User model with authentication
-│   │   ├── Order.js        # Order management schema
-│   │   ├── Payment.js      # Payment processing model
-│   │   ├── File.js         # File management with Cloudinary
-│   │   ├── Revision.js     # Revision tracking system
-│   │   └── Chat.js         # Real-time communication
-│   ├── routes/             # API endpoints
-│   │   ├── auth.js         # Authentication routes
-│   │   ├── orders.js       # Order management API
-│   │   ├── payments.js     # Payment processing API
-│   │   ├── revisions.js    # Revision management API
-│   │   ├── files.js        # File handling API
-│   │   ├── chat.js         # Communication API
-│   │   └── analytics.js    # Analytics & reporting API
-│   ├── utils/              # Utility modules
-│   │   ├── logger.js       # Winston logging configuration
-│   │   ├── validators.js   # Input validation & sanitization
-│   │   └── cloudinary.js   # File upload utilities
-│   └── server.js           # Main application entry point
-├── package.json            # Dependencies and scripts
-└── .env.example           # Environment configuration template
-```
+The `scripts/` directory contains utilities for database management:
 
-## 🔒 Security Features
-
-### Authentication & Authorization
-- JWT-based authentication with refresh tokens
-- Role-based access control (client/admin/super_admin)
-- Account lockout after failed login attempts
-- Password strength validation and hashing
-
-### Data Protection
-- MongoDB injection prevention
-- XSS protection with input sanitization
-- CORS configuration for cross-origin requests
-- HTTP Parameter Pollution prevention
-- Secure HTTP headers with Helmet.js
-
-### API Security
-- Rate limiting to prevent abuse
-- Request size limiting
-- Input validation on all endpoints
-- Comprehensive error handling without information leakage
-
-## 📊 Business Logic
-
-### Order Workflow
-1. **Order Creation** - Client creates order with requirements
-2. **Admin Assignment** - Orders assigned to available admins
-3. **Work in Progress** - Admin works on the order deliverables
-4. **Client Review** - Completed work sent for client review
-5. **Revisions** - Handle client feedback and revision requests
-6. **Final Delivery** - Order marked as completed and delivered
-
-### Payment Processing
-- Secure payment confirmation by admins
-- Comprehensive refund handling
-- Payment audit trails and history
-- Integration-ready for payment gateways
-
-### File Management
-- Secure file upload with type validation
-- Version control for file revisions
-- Access control based on user roles
-- Cloudinary integration for scalable storage
-
-## 🚀 Performance & Scaling
-
-### Database Optimization
-- Indexed fields for faster queries
-- Pagination for large datasets
-- Efficient aggregation pipelines for analytics
-- Connection pooling and optimization
-
-### Caching Strategy
-- Ready for Redis integration
-- Response caching for analytics endpoints
-- File metadata caching
-- Session management optimization
-
-### Monitoring & Logging
-- Comprehensive business event logging
-- Error tracking and alerting
-- Performance metrics collection
-- Request/response logging for debugging
-
-## 🧪 Testing
-
-The system is built with testing in mind:
-
-```bash
-# Run tests
-npm test
-
-# Run tests with coverage
-npm run test:coverage
-
-# Run specific test suite
-npm run test:auth
-npm run test:orders
-npm run test:payments
-```
-
-## 📈 Analytics & Insights
-
-The system provides comprehensive business analytics:
-
-- **Revenue Analytics** - Track income by service type, time period, and admin
-- **Performance Metrics** - Completion rates, quality scores, delivery times
-- **Client Analytics** - Segmentation, retention, lifetime value
-- **Operational Insights** - Workload distribution, revision patterns
-
-## 🔧 Configuration
+- **seed-db.js** - Populate database with sample data
+- **check-admin-assignments.js** - Verify order assignments
+- **fix-orphaned-orders.js** - Fix unassigned orders
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NODE_ENV` | Environment (development/production) | development |
-| `PORT` | Server port | 5000 |
-| `MONGODB_URI` | MongoDB connection string | localhost:27017 |
-| `JWT_SECRET` | JWT signing secret | required |
-| `CLOUDINARY_CLOUD_NAME` | Cloudinary configuration | required |
-| `LOG_LEVEL` | Logging level | info |
-| `RATE_LIMIT_MAX_REQUESTS` | Rate limit per window | 100 |
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `MONGODB_URI` | MongoDB Atlas connection string | ✅ |
+| `JWT_SECRET` | JWT signing secret | ✅ |
+| `JWT_REFRESH_SECRET` | Refresh token secret | ✅ |
+| `CLOUDINARY_CLOUD_NAME` | File storage (optional) | ❌ |
+| `NEXT_PUBLIC_APP_URL` | Application URL | ❌ |
 
-### Role Permissions
+## 🧪 Testing
 
-| Role | Permissions |
-|------|-------------|
-| `client` | View own orders, send messages, request revisions |
-| `admin` | Manage assigned orders, process payments, handle revisions |
-| `super_admin` | Full system access, analytics, user management |
+### API Testing with Postman
+
+A complete Postman collection is available at `postman/SkillX.postman_collection.json`:
+
+1. Import the collection into Postman
+2. Set up environment variables (baseUrl, authToken)
+3. Run the complete test suite
+
+### Manual Testing Checklist
+
+- [ ] User registration and login
+- [ ] Order creation and management  
+- [ ] Admin assignment and filtering
+- [ ] Real-time messaging system
+- [ ] Payment processing workflows
+- [ ] Analytics and reporting
+
+## 📊 Business Analytics
+
+The platform provides comprehensive business insights:
+
+### Key Metrics
+- **Order Volume** - Daily, weekly, monthly order trends
+- **Revenue Tracking** - Income by service type and time period
+- **Performance Metrics** - Completion rates and delivery times
+- **Client Analytics** - Retention rates and satisfaction scores
+
+### Admin Workload Distribution
+- **Assignment Balance** - Equal distribution across available experts
+- **Capacity Management** - Prevent admin overload
+- **Performance Tracking** - Individual admin productivity metrics
+
+## 🚀 Deployment
+
+### Vercel Deployment (Recommended)
+
+1. **Connect Repository**
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel --prod
+```
+
+2. **Environment Variables**
+   - Add all required environment variables in Vercel dashboard
+   - Ensure `MONGODB_URI` points to production database
+
+3. **Domain Configuration**
+   - Configure custom domain in Vercel settings
+   - Update CORS settings if needed
+
+### Manual Deployment
+
+```bash
+# Build the application
+npm run build
+
+# Start production server
+npm run start
+```
+
+## � Security Features
+
+### Authentication Security
+- JWT tokens with configurable expiration
+- Refresh token rotation for enhanced security
+- Password hashing with bcrypt
+- Account lockout after failed attempts
+
+### Data Protection  
+- Input validation and sanitization
+- MongoDB injection prevention
+- XSS protection
+- CORS configuration
+- Rate limiting on API endpoints
+
+### Access Control
+- Role-based permissions
+- Resource-level authorization
+- Admin assignment filtering
+- Secure file upload validation
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+We welcome contributions! Please follow these steps:
+
+1. **Fork the repository**
+2. **Create a feature branch**
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+3. **Make your changes**
+4. **Add tests** (if applicable)
+5. **Commit your changes**
+   ```bash
+   git commit -m 'Add amazing feature'
+   ```
+6. **Push to the branch**
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+7. **Open a Pull Request**
+
+### Code Style
+- Follow TypeScript best practices
+- Use Prettier for code formatting
+- Write meaningful commit messages
+- Add JSDoc comments for functions
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📞 Support
+## 📞 Support & Documentation
 
-For support and questions:
-- Create an issue in the repository
-- Email: support@skillx.com
-- Documentation: [API Documentation](./docs/api.md)
+### Getting Help
+- 📚 [API Documentation](./docs/API.md)
+- 🐛 [Issue Tracker](https://github.com/InnoTechI/SkillX/issues)
+- 💬 [Discussions](https://github.com/InnoTechI/SkillX/discussions)
+
+### Additional Resources
+- [Postman Collection](./postman/SkillX.postman_collection.json)
+- [Database Schema](./docs/database-schema.md)
+- [Deployment Guide](./docs/deployment.md)
 
 ---
 
-**SkillX Admin Backend** - Enterprise-grade resume service management system built with Node.js, MongoDB, and modern security practices.
+**SkillX** - Empowering careers through professional services and expert guidance.
+
+Built with ❤️ by [InnoTechI](https://github.com/InnoTechI)

@@ -1,56 +1,180 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { TokenManager } from '@/lib/http';
 
+interface RevisionRequest {
+  id: string;
+  order: string;
+  customer: string;
+  request: string;
+  status: string;
+  priority: string;
+  submittedDate: string;
+  dueDate: string | null;
+  feedback?: string;
+  adminNotes?: string;
+}
+
+interface RevisionsData {
+  revisions: RevisionRequest[];
+  statistics: {
+    totalRevisions: number;
+    statusBreakdown: Record<string, number>;
+    priorityBreakdown: Record<string, number>;
+  };
+  pagination: {
+    currentPage: number;
+    totalItems: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
 export default function RevisionsPage() {
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const { user, isLoading } = useAuth();
+  const [revisionsData, setRevisionsData] = useState<RevisionsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Revision action handlers
+  const handleRevisionAction = async (revisionId: string, action: string, status?: string) => {
+    setActionLoading(revisionId);
+    try {
+      const token = TokenManager.getAccessToken();
+      const response = await fetch(`/api/revisions/${revisionId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          status: status || action,
+          adminNotes: action === 'rejected' ? 'Revision request rejected by admin' : undefined
+        })
+      });
+
+      if (response.ok) {
+        await fetchRevisions(); // Refresh data
+      } else {
+        alert(`Failed to ${action} revision`);
+      }
+    } catch (err) {
+      console.error(`Error ${action} revision:`, err);
+      alert(`Error ${action} revision`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleViewOrder = (orderNumber: string) => {
+    window.open(`/admin/orders?search=${orderNumber}`, '_blank');
+  };
+
+  const fetchRevisions = async () => {
+    try {
+      const token = TokenManager.getAccessToken();
+      if (!token) {
+        setError('No authentication token found');
+        return;
+      }
+
+      const response = await fetch('/api/revisions', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch revisions');
+      }
+
+      const data = await response.json();
+      setRevisionsData(data.data);
+    } catch (err: any) {
+      console.error('Error fetching revisions:', err);
+      setError(err.message || 'Failed to fetch revisions');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Temporarily bypass authentication for testing
-    setIsAuthorized(true);
-  }, []);
+    if (!isLoading && user) {
+      if (!['admin', 'super_admin'].includes(user.role)) {
+        window.location.href = '/login';
+        return;
+      }
+      fetchRevisions();
+    } else if (!isLoading && !user) {
+      window.location.href = '/login';
+    }
+  }, [user, isLoading]);
 
-  if (isAuthorized === null) {
+  if (isLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-500">Loading…</div>
     );
   }
 
-  if (!isAuthorized) return null;
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              fetchRevisions();
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  const revisionRequests = [
-    { 
-      id: 'REV-001', 
-      order: 'ORD-001', 
-      customer: 'John Smith', 
-      request: 'Please add my recent project experience and update the skills section', 
-      status: 'Pending', 
-      priority: 'High',
-      submittedDate: '2025-01-14',
-      dueDate: '2025-01-16'
-    },
-    { 
-      id: 'REV-002', 
-      order: 'ORD-003', 
-      customer: 'Mike Davis', 
-      request: 'Change the format to ATS-friendly and update contact information', 
-      status: 'In Progress', 
-      priority: 'Medium',
-      submittedDate: '2025-01-13',
-      dueDate: '2025-01-15'
-    },
-    { 
-      id: 'REV-003', 
-      order: 'ORD-002', 
-      customer: 'Sarah Johnson', 
-      request: 'Minor formatting adjustments and add a professional summary', 
-      status: 'Completed', 
-      priority: 'Low',
-      submittedDate: '2025-01-12',
-      dueDate: '2025-01-14'
+  if (!user || !['admin', 'super_admin'].includes(user.role)) {
+    return null;
+  }
+
+  const revisionRequests = revisionsData?.revisions || [];
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'in progress':
+        return 'bg-blue-100 text-blue-800';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'rejected':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
-  ];
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority.toLowerCase()) {
+      case 'high':
+        return 'bg-red-100 text-red-800';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'low':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F6F7FB]">
@@ -160,31 +284,66 @@ export default function RevisionsPage() {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <button className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">
+                  <button 
+                    onClick={() => handleViewOrder(revision.order)}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors"
+                  >
                     View Order
                   </button>
-                  <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">
+                  <button 
+                    onClick={() => window.open(`/orders/${revision.order}/original`, '_blank')}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition-colors"
+                  >
                     View Original
                   </button>
                 </div>
                 <div className="flex items-center gap-2">
                   {revision.status === 'Pending' && (
                     <>
-                      <button className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600">
-                        Start Revision
+                      <button 
+                        onClick={() => handleRevisionAction(revision.id, 'start', 'in_progress')}
+                        disabled={actionLoading === revision.id}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                      >
+                        {actionLoading === revision.id ? (
+                          <>
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                            <span>Starting...</span>
+                          </>
+                        ) : (
+                          'Start Revision'
+                        )}
                       </button>
-                      <button className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600">
+                      <button 
+                        onClick={() => handleRevisionAction(revision.id, 'reject', 'rejected')}
+                        disabled={actionLoading === revision.id}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
                         Reject
                       </button>
                     </>
                   )}
                   {revision.status === 'In Progress' && (
-                    <button className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600">
-                      Mark Complete
+                    <button 
+                      onClick={() => handleRevisionAction(revision.id, 'complete', 'completed')}
+                      disabled={actionLoading === revision.id}
+                      className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                    >
+                      {actionLoading === revision.id ? (
+                        <>
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                          <span>Completing...</span>
+                        </>
+                      ) : (
+                        'Mark Complete'
+                      )}
                     </button>
                   )}
                   {revision.status === 'Completed' && (
-                    <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">
+                    <button 
+                      onClick={() => window.open(`/revisions/${revision.id}/completed`, '_blank')}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition-colors"
+                    >
                       View Completed
                     </button>
                   )}

@@ -10,7 +10,6 @@ export default function HeroSection() {
   const _handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle newsletter subscription
-    console.log('Email submitted:', email);
     setEmail('');
   };
 
@@ -64,10 +63,13 @@ export default function HeroSection() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <button className="bg-lime-300 text-black px-8 py-4 rounded-full font-semibold hover:bg-lime-400 transition-colors flex items-center justify-center space-x-2">
+            <a 
+              href="/register" 
+              className="bg-lime-300 text-black px-8 py-4 rounded-full font-semibold hover:bg-lime-400 transition-colors flex items-center justify-center space-x-2 no-underline"
+            >
               <span>Start Exploring</span>
               <span>→</span>
-            </button>
+            </a>
             <a href="#companies" className="text-white underline hover:text-gray-300 transition-colors">
               Join as a Company
             </a>

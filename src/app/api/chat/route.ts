@@ -15,7 +15,7 @@ interface ChatMessage {
 }
 
 // In-memory storage for demo purposes (in production, use MongoDB)
-let chatMessages: ChatMessage[] = [];
+const chatMessages: ChatMessage[] = [];
 
 export async function GET(req: Request) {
   try {

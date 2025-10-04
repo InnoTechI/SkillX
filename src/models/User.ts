@@ -90,7 +90,6 @@ UserSchema.virtual('isLocked').get(function (this: IUser) {
   return !!(this.lockUntil && this.lockUntil > new Date());
 });
 
-UserSchema.index({ email: 1 });
 UserSchema.index({ role: 1 });
 UserSchema.index({ isActive: 1 });
 UserSchema.index({ createdAt: -1 });

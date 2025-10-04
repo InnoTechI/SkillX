@@ -1,13 +1,64 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
+interface CareerPath {
+  _id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  order: number;
+  icon?: string;
+  category?: string;
+  jobCount?: number;
+  averageSalary?: number;
+}
+
 export default function CareerPathsSection() {
-  const careerPaths = [
-    { id: 1, name: "Artificial Intelligence", isActive: true },
-    { id: 2, name: "Cyber Security", isActive: false },
-    { id: 3, name: "Web Development", isActive: false },
-    { id: 4, name: "Software Development", isActive: false },
-    { id: 5, name: "Data Analytics", isActive: false },
-    { id: 6, name: "UI / UX Designer", isActive: false },
-    { id: 7, name: "Product Management", isActive: false },
-  ];
+  const [careerPaths, setCareerPaths] = useState<CareerPath[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCareerPaths();
+  }, []);
+
+  const fetchCareerPaths = async () => {
+    try {
+      const response = await fetch('/api/career-paths?limit=7');
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setCareerPaths(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching career paths:', error);
+      // Fallback to default career paths if API fails
+      setCareerPaths([
+        { _id: '1', name: "Artificial Intelligence", isActive: true, order: 1, category: 'technology' },
+        { _id: '2', name: "Cyber Security", isActive: false, order: 2, category: 'technology' },
+        { _id: '3', name: "Web Development", isActive: false, order: 3, category: 'technology' },
+        { _id: '4', name: "Software Development", isActive: false, order: 4, category: 'technology' },
+        { _id: '5', name: "Data Analytics", isActive: false, order: 5, category: 'technology' },
+        { _id: '6', name: "UI / UX Designer", isActive: false, order: 6, category: 'design' },
+        { _id: '7', name: "Product Management", isActive: false, order: 7, category: 'business' },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <section id="domains" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading career paths...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="domains" className="py-20 bg-white">
@@ -26,9 +77,9 @@ export default function CareerPathsSection() {
 
         {/* Career Paths Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {careerPaths.map((path) => (
+          {careerPaths.map((path, index) => (
             <div
-              key={path.id}
+              key={path._id}
               className={`p-6 rounded-2xl transition-all duration-300 hover:shadow-lg ${
                 path.isActive 
                   ? 'bg-gray-50 text-gray-900' 
@@ -39,7 +90,7 @@ export default function CareerPathsSection() {
                 <span className={`text-sm font-medium ${
                   path.isActive ? 'text-gray-400' : 'text-gray-400'
                 }`}>
-                  {path.id.toString().padStart(2, '0')} /
+                  {(index + 1).toString().padStart(2, '0')} /
                 </span>
                 <h3 className={`text-xl font-bold ${
                   path.isActive ? 'text-gray-900' : 'text-gray-900'

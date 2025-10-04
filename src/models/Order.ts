@@ -26,6 +26,7 @@ export interface IOrder extends Document {
     discount?: number;
     totalAmount: number;
     currency: 'USD' | 'EUR' | 'GBP' | 'CAD' | 'AUD';
+    paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded';
   };
   timeline: {
     estimatedCompletion: Date;
@@ -80,6 +81,7 @@ const OrderSchema = new Schema<IOrder, IOrderModel>({
     discount: { type: Number, default: 0, min: 0, max: 100 },
     totalAmount: { type: Number, required: true, min: 0 },
     currency: { type: String, default: 'USD', enum: ['USD','EUR','GBP','CAD','AUD'] },
+    paymentStatus: { type: String, enum: ['pending','paid','failed','refunded'], default: 'pending' }
   },
   timeline: {
     estimatedCompletion: { type: Date, required: true },
@@ -97,7 +99,6 @@ const OrderSchema = new Schema<IOrder, IOrderModel>({
   metadata: { source: { type: String, enum: ['website','mobile_app','phone','email','referral'], default: 'website' }, referralCode: String, campaignId: String, clientIP: String, userAgent: String }
 }, { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } });
 
-OrderSchema.index({ orderNumber: 1 });
 OrderSchema.index({ client: 1 });
 OrderSchema.index({ assignedAdmin: 1 });
 OrderSchema.index({ status: 1 });
@@ -173,8 +174,7 @@ OrderSchema.methods.updateStatus = function (newStatus: OrderStatus, adminId?: m
     cancelled: [],
     refunded: []
   } as any;
-  // @ts-ignore
-  if (!validTransitions[this.status].includes(newStatus)) {
+  if (!validTransitions[this.status as OrderStatus].includes(newStatus)) {
     throw new Error(`Invalid status transition from ${this.status} to ${newStatus}`);
   }
   this.status = newStatus;

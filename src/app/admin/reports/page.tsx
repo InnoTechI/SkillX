@@ -1,52 +1,148 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { TokenManager } from '@/lib/http';
 
+interface ReportsData {
+  metrics: {
+    totalResumes: number;
+    avgCompletionTime: number;
+    revenue: number;
+    activeClients: number;
+    changes: {
+      resumesChange: string;
+      completionTimeChange: string;
+      revenueChange: string;
+      clientsChange: string;
+    };
+  };
+  monthlyPayments: Array<{
+    month: string;
+    resumes: number;
+    revenue: number;
+  }>;
+  serviceBreakdown: Array<{
+    label: string;
+    percent: number;
+    color: string;
+    orders: number;
+  }>;
+}
+
 export default function ReportsPage() {
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const [reportsData, setReportsData] = useState<ReportsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Temporarily bypass authentication for testing
-    setIsAuthorized(true);
-  }, []);
+    if (authLoading) return; // Wait for auth to load
+    
+    if (!isAuthenticated || !user) {
+      window.location.href = '/login';
+      return;
+    }
 
-  if (isAuthorized === null) {
+    // Check if user has admin role
+    const role = String(user?.role || '').toLowerCase();
+    const hasAdminAccess = role === 'admin' || role === 'super_admin';
+    
+    if (!hasAdminAccess) {
+      window.location.href = '/login';
+      return;
+    }
+
+    fetchReportsData();
+  }, [isAuthenticated, user, authLoading]);
+
+  const fetchReportsData = async () => {
+    try {
+      setLoading(true);
+      const token = TokenManager.getAccessToken();
+      
+      const response = await fetch('/api/admin/reports', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setReportsData(data.data);
+      } else {
+        setError(data.message || 'Failed to fetch reports data');
+      }
+    } catch (err) {
+      setError('Error connecting to server');
+      console.error('Error fetching reports data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">Loading…</div>
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          Loading reports...
+        </div>
+      </div>
     );
   }
 
-  if (!isAuthorized) return null;
+  if (!isAuthenticated || !user) return null;
+
+  const role = String(user?.role || '').toLowerCase();
+  const hasAdminAccess = role === 'admin' || role === 'super_admin';
+  
+  if (!hasAdminAccess) return null;
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={fetchReportsData}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!reportsData) return null;
 
   const metricCards = [
-    { title: 'Total Resumes', value: '234', change: '+12% This Month', icon: '📄' },
-    { title: 'Avg. Completion Time', value: '3.2 days', change: '-0.5 days This Month', icon: '⏱️' },
-    { title: 'Revenue', value: '$28,450', change: '+18% This Month', icon: '💰' },
-    { title: 'Active Clients', value: '67', change: '+8% This Week', icon: '👥' }
-  ];
-
-  const monthlyPayments = [
-    { month: 'Jan 2025', resumes: 45, revenue: 6750 },
-    { month: 'Feb 2025', resumes: 52, revenue: 7800 },
-    { month: 'Mar 2025', resumes: 48, revenue: 7200 },
-    { month: 'Apr 2025', resumes: 61, revenue: 9150 },
-    { month: 'May 2025', resumes: 56, revenue: 8700 },
-    { month: 'Jun 2025', resumes: 67, revenue: 10050 }
-  ];
-
-  const serviceBreakdown = [
-    { label: 'Executive Resume', percent: 38, color: '#84CC16', orders: 45 },
-    { label: 'Technical Resume', percent: 27, color: '#8B5CF6', orders: 32 },
-    { label: 'Entry Level Resume', percent: 24, color: '#22C55E', orders: 27 },
-    { label: 'Career Change Resume', percent: 11, color: '#FB923C', orders: 13 }
-  ];
-
-  const recentPayments = [
-    { id: 'PAY-001', customer: 'John Smith', amount: '$299', date: '2025-01-14', status: 'Completed' },
-    { id: 'PAY-002', customer: 'Sarah Johnson', amount: '$199', date: '2025-01-14', status: 'Completed' },
-    { id: 'PAY-003', customer: 'Mike Davis', amount: '$399', date: '2025-01-13', status: 'Completed' },
-    { id: 'PAY-004', customer: 'Emily Chen', amount: '$249', date: '2025-01-13', status: 'Completed' }
+    { 
+      title: 'Total Resumes', 
+      value: reportsData.metrics.totalResumes.toString(), 
+      change: reportsData.metrics.changes.resumesChange + ' This Month', 
+      icon: '�' 
+    },
+    { 
+      title: 'Avg. Completion Time', 
+      value: `${reportsData.metrics.avgCompletionTime} days`, 
+      change: reportsData.metrics.changes.completionTimeChange + ' This Month', 
+      icon: '⏱️' 
+    },
+    { 
+      title: 'Revenue', 
+      value: `$${reportsData.metrics.revenue.toLocaleString()}`, 
+      change: reportsData.metrics.changes.revenueChange + ' This Month', 
+      icon: '💰' 
+    },
+    { 
+      title: 'Active Clients', 
+      value: reportsData.metrics.activeClients.toString(), 
+      change: reportsData.metrics.changes.clientsChange + ' This Week', 
+      icon: '👥' 
+    }
   ];
 
   return (
@@ -108,37 +204,37 @@ export default function ReportsPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Payment Transactions (Monthly) */}
-          <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6">
+          <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6 flex flex-col">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Payment Transactions</h2>
-            <div className="divide-y divide-gray-100">
-              {monthlyPayments.map((m) => (
-                <div key={m.month} className="py-3 flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">{m.month}</div>
-                    <div className="text-xs text-gray-500">{m.resumes} resumes completed</div>
+            <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+              <div className="pr-4">
+                {reportsData.monthlyPayments.map((m) => (
+                  <div key={m.month} className="py-3 flex items-center justify-between mr-2">
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-gray-900">{m.month}</div>
+                      <div className="text-xs text-gray-500">{m.resumes} resumes completed</div>
+                    </div>
+                    <div className="text-emerald-600 text-sm font-semibold ml-4 flex-shrink-0">${m.revenue.toLocaleString()}</div>
                   </div>
-                  <div className="text-emerald-600 text-sm font-semibold">${m.revenue.toLocaleString()}</div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Service Type Chart */}
-          <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6">
+          <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6 flex flex-col">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Service Type breakdown</h2>
-            <div className="space-y-5">
-              {serviceBreakdown.map((s) => (
-                <div key={s.label} className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="text-sm text-gray-800">{s.label}</div>
-                      <div className="text-sm text-gray-800">{s.percent}%</div>
-                    </div>
-                    <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full" style={{ width: `${s.percent}%`, backgroundColor: s.color }} />
-                    </div>
-                    <div className="text-[11px] text-gray-500 mt-1">{s.orders} orders</div>
+            <div className="space-y-4 flex-1">
+              {reportsData.serviceBreakdown.map((s) => (
+                <div key={s.label} className="">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-medium text-gray-800">{s.label}</div>
+                    <div className="text-sm font-semibold text-gray-800">{s.percent}%</div>
                   </div>
+                  <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden mb-1">
+                    <div className="h-full rounded-full transition-all duration-300" style={{ width: `${s.percent}%`, backgroundColor: s.color }} />
+                  </div>
+                  <div className="text-xs text-gray-500">{s.orders} orders</div>
                 </div>
               ))}
             </div>

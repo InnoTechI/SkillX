@@ -1,8 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import { TokenManager } from '@/lib/http';
 
 export default function LoginPage() {
+  const { login } = useAuth();
   const [role, setRole] = useState<'admin' | 'user'>('admin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,28 +17,44 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    
+    // Clear any old tokens first
+    TokenManager.clearAll();
+    
     if (role === 'user') {
       setError('User login is not enabled yet. Please use Admin.');
       return;
     }
     try {
       setSubmitting(true);
+      
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
+      
       const data = await res.json();
+      
       if (!res.ok || !data?.success) {
         throw new Error(data?.message || 'Login failed');
       }
+      
       try {
-        localStorage.setItem('accessToken', data.data.tokens.accessToken);
-        localStorage.setItem('refreshToken', data.data.tokens.refreshToken);
-        localStorage.setItem('authUser', JSON.stringify(data.data.user));
-      } catch {}
+        // Use TokenManager methods for consistent storage
+        TokenManager.setTokens(data.data.tokens);
+        TokenManager.setUser(data.data.user);
+        
+        // Update AuthContext
+        login(data.data.user);
+      } catch (storageError) {
+        console.error('Token storage failed:', storageError);
+      }
+      
       const r = String(data?.data?.user?.role || '').toLowerCase();
-      window.location.href = r === 'admin' || r === 'super_admin' ? '/admin' : '/';
+      const redirectUrl = r === 'admin' || r === 'super_admin' ? '/admin' : '/';
+      
+      window.location.href = redirectUrl;
     } catch (err: any) {
       setError(err?.message || 'Login failed');
     } finally {
@@ -44,14 +64,14 @@ export default function LoginPage() {
 
   return (
     <section
-      className="min-h-[80vh] flex items-center justify-center px-6 py-16 text-white"
+      className="min-h-screen flex items-center justify-center px-6 py-16 text-white"
       style={{ background: 'radial-gradient(69.05% 70.98% at 15.4% 72.36%, rgba(0, 0, 0, 0.92) 37.02%, #202FE9 62.5%, #666666 100%)' }}
     >
       <div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-xl ring-1 ring-gray-200 text-gray-900 relative">
-        <a href="/" className="absolute top-4 left-4 inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors" aria-label="Back to Home">
+        <Link href="/" className="absolute top-4 left-4 inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors" aria-label="Back to Home">
           <svg className="w-5 h-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
           <span className="text-sm font-medium">Back</span>
-        </a>
+        </Link>
 
         <div className="mb-8 pt-6">
           <div className="flex justify-center items-center gap-2 mb-4">

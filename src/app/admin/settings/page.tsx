@@ -1,24 +1,122 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { TokenManager } from '@/lib/http';
 
+interface UserProfile {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  phone?: string;
+  profileImage?: string;
+  isEmailVerified: boolean;
+  lastLogin?: string;
+  createdAt: string;
+  preferences: {
+    notifications: {
+      email: boolean;
+      sms: boolean;
+      push: boolean;
+    };
+    timezone: string;
+    language: string;
+  };
+}
+
 export default function SettingsPage() {
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const fetchUserProfile = async () => {
+    try {
+      const token = TokenManager.getAccessToken();
+      if (!token) {
+        setError('No authentication token found');
+        return;
+      }
+
+      const response = await fetch('/api/user/details', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setUserProfile(data.data.user);
+      } else {
+        throw new Error(data.message || 'Failed to fetch user profile');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch user profile');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Temporarily bypass authentication for testing
-    setIsAuthorized(true);
-  }, []);
+    if (authLoading) return;
+    
+    if (!isAuthenticated || !user) {
+      window.location.href = '/login';
+      return;
+    }
 
-  if (isAuthorized === null) {
+    const role = String(user?.role || '').toLowerCase();
+    const hasAdminAccess = role === 'admin' || role === 'super_admin';
+    
+    if (!hasAdminAccess) {
+      window.location.href = '/login';
+      return;
+    }
+
+    fetchUserProfile();
+  }, [isAuthenticated, user, authLoading]);
+
+  if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">Loading…</div>
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          Loading settings...
+        </div>
+      </div>
     );
   }
 
-  if (!isAuthorized) return null;
+  if (!isAuthenticated || !user) return null;
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              fetchUserProfile();
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const tabs = [
     { id: 'profile', name: 'Profile', icon: '👤' },
@@ -93,18 +191,43 @@ export default function SettingsPage() {
             <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6">
               <div className="flex flex-col items-center text-center">
                 <div className="w-24 h-24 rounded-full bg-[#E5E7EB] flex items-center justify-center text-2xl font-bold text-indigo-700 select-none">
-                  AU
+                  {userProfile?.firstName?.charAt(0)?.toUpperCase() || 'U'}{userProfile?.lastName?.charAt(0)?.toUpperCase() || 'U'}
                 </div>
-                <div className="mt-3 font-semibold text-gray-900">Admin User</div>
-                <span className="mt-2 inline-flex px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-700">Manager</span>
+                <div className="mt-3 font-semibold text-gray-900">
+                  {userProfile ? `${userProfile.firstName} ${userProfile.lastName}` : 'Loading...'}
+                </div>
+                <span className="mt-2 inline-flex px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-700 capitalize">
+                  {userProfile?.role || 'User'}
+                </span>
               </div>
 
               <div className="mt-6 space-y-3 text-sm">
-                <div className="flex justify-between text-gray-600"><span>Email:</span><span className="text-gray-900">admin@skillx.com</span></div>
-                <div className="flex justify-between text-gray-600"><span>Phone:</span><span className="text-gray-900">+91 12345 67890</span></div>
-                <div className="flex justify-between text-gray-600"><span>Orders Assigned:</span><span className="text-gray-900">45</span></div>
-                <div className="flex justify-between text-gray-600"><span>Joined On:</span><span className="text-gray-900">January 15, 2025</span></div>
-                <div className="flex justify-between text-gray-600"><span>Last Login:</span><span className="text-gray-900">Today, 9:24 AM</span></div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Email:</span>
+                  <span className="text-gray-900">{userProfile?.email || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Phone:</span>
+                  <span className="text-gray-900">{userProfile?.phone || 'Not provided'}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Email Verified:</span>
+                  <span className={`${userProfile?.isEmailVerified ? 'text-green-600' : 'text-red-600'}`}>
+                    {userProfile?.isEmailVerified ? 'Yes' : 'No'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Joined On:</span>
+                  <span className="text-gray-900">
+                    {userProfile?.createdAt ? new Date(userProfile.createdAt).toLocaleDateString() : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Last Login:</span>
+                  <span className="text-gray-900">
+                    {userProfile?.lastLogin ? new Date(userProfile.lastLogin).toLocaleString() : 'N/A'}
+                  </span>
+                </div>
               </div>
             </div>
           </aside>
@@ -115,13 +238,55 @@ export default function SettingsPage() {
               {activeTab === 'profile' && (
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 mb-6">Profile Settings</h2>
-                  <div className="space-y-6">
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    setSaving(true);
+                    setError(null);
+                    
+                    try {
+                      const formData = new FormData(e.currentTarget);
+                      const profileData = {
+                        firstName: formData.get('firstName') as string,
+                        lastName: formData.get('lastName') as string,
+                        email: formData.get('email') as string,
+                        phone: formData.get('phone') as string
+                      };
+
+                      const token = TokenManager.getAccessToken();
+                      const response = await fetch('/api/user/details', {
+                        method: 'PUT',
+                        headers: {
+                          'Authorization': `Bearer ${token}`,
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(profileData)
+                      });
+
+                      const result = await response.json();
+                      
+                      if (result.success) {
+                        setUserProfile(result.data.user);
+                        // Show success message
+                        alert('Profile updated successfully!');
+                      } else {
+                        throw new Error(result.message || 'Failed to update profile');
+                      }
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'Failed to update profile');
+                      alert('Failed to update profile. Please try again.');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }} className="space-y-6">
                     <div className="flex items-center gap-6">
                       <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
-                        <span className="text-2xl">👤</span>
+                        <span className="text-2xl">
+                          {userProfile?.firstName?.charAt(0)?.toUpperCase() || '👤'}
+                          {userProfile?.lastName?.charAt(0)?.toUpperCase() || ''}
+                        </span>
                       </div>
                       <div>
-                        <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                        <button type="button" className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
                           Change Photo
                         </button>
                         <p className="text-sm text-gray-500 mt-1">JPG, PNG up to 2MB</p>
@@ -130,18 +295,20 @@ export default function SettingsPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
                         <input
                           type="text"
-                          defaultValue="Admin User"
+                          defaultValue={userProfile?.firstName || ''}
+                          name="firstName"
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder-black"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
                         <input
-                          type="email"
-                          defaultValue="admin@skillx.com"
+                          type="text"
+                          defaultValue={userProfile?.lastName || ''}
+                          name="lastName"
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder-black"
                         />
                       </div>
@@ -149,16 +316,39 @@ export default function SettingsPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                         <input
-                          type="tel"
-                          defaultValue="+91 12345 67890"
+                          type="email"
+                          defaultValue={userProfile?.email || ''}
+                          name="email"
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder-black"
                         />
                       </div>
                       <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <input
+                          type="tel"
+                          defaultValue={userProfile?.phone || ''}
+                          name="phone"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder-black"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-                        <div className="inline-flex px-3 py-1 rounded-full bg-lime-100 text-lime-700 text-xs font-medium">Admin</div>
+                        <div className="inline-flex px-3 py-1 rounded-full bg-lime-100 text-lime-700 text-xs font-medium capitalize">
+                          {userProfile?.role || 'User'}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Account Status</label>
+                        <div className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
+                          userProfile?.isEmailVerified ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {userProfile?.isEmailVerified ? 'Verified' : 'Pending Verification'}
+                        </div>
                       </div>
                     </div>
 
@@ -167,7 +357,7 @@ export default function SettingsPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">Date Joined</label>
                         <input
                           type="text"
-                          defaultValue="January 15, 2025"
+                          value={userProfile?.createdAt ? new Date(userProfile.createdAt).toLocaleDateString() : 'N/A'}
                           disabled
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-500"
                         />
@@ -176,7 +366,7 @@ export default function SettingsPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">Last Login</label>
                         <input
                           type="text"
-                          defaultValue="Today, 9:24 PM"
+                          value={userProfile?.lastLogin ? new Date(userProfile.lastLogin).toLocaleString() : 'N/A'}
                           disabled
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-500"
                         />
@@ -184,11 +374,22 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="pt-2">
-                      <button className="w-full h-10 bg-[rgba(98,127,248,1)] text-white rounded-lg font-medium hover:opacity-90">
-                        Save Changes
+                      <button 
+                        type="submit"
+                        disabled={saving}
+                        className="w-full h-10 bg-[rgba(98,127,248,1)] text-white rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {saving ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>Saving...</span>
+                          </>
+                        ) : (
+                          'Save Changes'
+                        )}
                       </button>
                     </div>
-                  </div>
+                  </form>
                 </div>
               )}
 

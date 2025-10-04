@@ -1,44 +1,71 @@
 "use client";
 
+import { useEffect, useState } from 'react';
+
+interface Partner {
+  _id: string;
+  name: string;
+  logo: string;
+  website?: string;
+  category: string;
+}
+
 export default function PartnersSection() {
-  const partners: { name: string; logos: string[] }[] = [
-    { name: "Microsoft", logos: ["https://logo.clearbit.com/microsoft.com"] },
-    { name: "HP", logos: ["https://logo.clearbit.com/hp.com"] },
-    { name: "Dropbox", logos: ["https://logo.clearbit.com/dropbox.com"] },
-    { name: "Slack", logos: ["https://logo.clearbit.com/slack.com"] },
-    { name: "Dribbble", logos: ["https://logo.clearbit.com/dribbble.com"] },
-    { name: "Adobe", logos: [
-      "/adobe.png",
-      "https://logo.clearbit.com/adobe.com",
-      "https://cdn.simpleicons.org/adobe/ff0000",
-      "https://upload.wikimedia.org/wikipedia/commons/4/4f/Adobe_Systems_logo_and_wordmark.svg"
-    ] },
-    { name: "Flipkart", logos: ["https://logo.clearbit.com/flipkart.com"] },
-    { name: "Tata", logos: ["https://logo.clearbit.com/tata.com"] },
-    { name: "Google", logos: [
-      "/google.jpeg",
-      "https://logo.clearbit.com/google.com",
-      "https://cdn.simpleicons.org/google/4285F4",
-      "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg"
-    ] }
-  ];
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPartners();
+  }, []);
+
+  const fetchPartners = async () => {
+    try {
+      const response = await fetch('/api/partners?limit=10');
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setPartners(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching partners:', error);
+      // Fallback to default partners if API fails
+      setPartners([
+        { _id: '1', name: "Microsoft", logo: "https://logo.clearbit.com/microsoft.com", category: "enterprise" },
+        { _id: '2', name: "Google", logo: "/google.jpeg", category: "enterprise" },
+        { _id: '3', name: "Adobe", logo: "/adobe.png", category: "enterprise" },
+        { _id: '4', name: "HP", logo: "https://logo.clearbit.com/hp.com", category: "enterprise" },
+        { _id: '5', name: "Dropbox", logo: "https://logo.clearbit.com/dropbox.com", category: "startup" },
+        { _id: '6', name: "Slack", logo: "https://logo.clearbit.com/slack.com", category: "enterprise" },
+        { _id: '7', name: "Flipkart", logo: "https://logo.clearbit.com/flipkart.com", category: "enterprise" },
+        { _id: '8', name: "Tata", logo: "https://logo.clearbit.com/tata.com", category: "enterprise" }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleImgError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const img = e.currentTarget;
-    const fallbacks = (img.dataset.fallbacks || "").split("|").filter(Boolean);
-    const idx = Number(img.dataset.fallbackIndex || "0");
-    if (idx < fallbacks.length) {
-      img.dataset.fallbackIndex = String(idx + 1);
-      img.src = fallbacks[idx];
-    } else {
-      // last resort: show text placeholder
-      img.style.display = 'none';
-      const parent = img.parentElement;
-      if (parent) {
-        parent.innerHTML = `<span class="text-gray-500 text-sm">${img.alt}</span>`;
-      }
+    // Fallback to a placeholder or hide the image
+    img.style.display = 'none';
+    const parent = img.parentElement;
+    if (parent) {
+      parent.innerHTML = `<span class="text-gray-500 text-sm">${img.alt}</span>`;
     }
   };
+
+  if (loading) {
+    return (
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading partners...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-20 bg-white">
@@ -55,12 +82,10 @@ export default function PartnersSection() {
 
         {/* Partners Grid */}
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-          {partners.map((partner, index) => (
-            <div key={index} className="bg-[#FFF6F6] border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex items-center justify-center">
+          {partners.map((partner) => (
+            <div key={partner._id} className="bg-[#FFF6F6] border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex items-center justify-center">
               <img
-                src={partner.logos[0]}
-                data-fallbacks={partner.logos.slice(1).join("|")}
-                data-fallback-index="0"
+                src={partner.logo}
                 onError={handleImgError}
                 alt={`${partner.name} logo`}
                 className="max-h-10 object-contain mix-blend-multiply"

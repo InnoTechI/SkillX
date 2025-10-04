@@ -20,7 +20,7 @@ interface Payment {
 }
 
 // In-memory storage for demo purposes (in production, use MongoDB)
-let payments: Payment[] = [];
+const payments: any[] = [];
 
 export async function GET(req: Request) {
   try {
